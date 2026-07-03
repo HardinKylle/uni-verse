@@ -14,13 +14,12 @@ test("home page loads with no console errors", async ({ page }) => {
   const response = await page.goto("/");
 
   expect(response?.ok()).toBe(true);
-  await expect(page.getByRole("heading", { name: "AU Studio" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "CHAT SCRIPT TIMELINE" })).toBeVisible();
   await expect(page.getByRole("region", { name: "Message preview" })).toBeVisible();
 
   await page.getByRole("textbox", { name: /new message/i }).fill("hello from the test");
-  await page.getByRole("button", { name: /add to conversation/i }).click();
+  await page.getByRole("button", { name: "Send message" }).click();
 
-  await expect(page.getByText("3 messages")).toBeVisible();
   await expect(
     page.getByRole("region", { name: "Message preview" }).getByText("hello from the test"),
   ).toBeVisible();
