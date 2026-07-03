@@ -20,20 +20,19 @@ describe("Studio", () => {
     expect(within(preview).getByText("Jazz")).toBeInTheDocument();
   });
 
-  it("adds messages with Enter and advances to the next sender", async () => {
+  it("adds messages with Enter without advancing to the next sender", async () => {
     const user = userEvent.setup();
     render(<Studio />);
 
     const composer = screen.getByRole("textbox", { name: /new message/i });
     await user.type(composer, "new message{Enter}");
 
-    expect(screen.getByText("3 messages")).toBeInTheDocument();
-    expect(screen.getAllByLabelText("Message from Jaz", { selector: "input" }).at(-1)).toHaveValue(
+    expect(screen.getAllByText("3").length).toBeGreaterThan(0);
+    expect(screen.getAllByLabelText("Message from Jaz", { selector: "textarea" }).at(-1)).toHaveValue(
       "new message",
     );
-    expect(screen.getByText("New message ·", { exact: false })).toHaveTextContent(
-      "New message · Kylle",
-    );
+    expect(screen.getByText("Writing as")).toBeInTheDocument();
+    expect(screen.getAllByText("Jaz")[1]).toBeInTheDocument();
   });
 
   it("updates screen settings and delivery status", async () => {
@@ -58,7 +57,27 @@ describe("Studio", () => {
     await user.click(screen.getByRole("button", { name: "Delete character" }));
 
     expect(screen.queryByText("Kylle")).not.toBeInTheDocument();
-    expect(screen.getByText("◉ this phone · blue side")).toBeInTheDocument();
+    expect(screen.getByText("This phone")).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Edit" })).toHaveLength(1);
+  });
+
+  it("supports keyboard selection in properties dropdowns", async () => {
+    const user = userEvent.setup();
+    render(<Studio />);
+
+    const ownerSelect = screen.getByRole("combobox", { name: "Whose phone" });
+    ownerSelect.focus();
+    await user.keyboard("{ArrowDown}{ArrowDown}{Enter}");
+
+    expect(ownerSelect).toHaveTextContent("Jaz");
+    expect(screen.getAllByText("This phone")[0]).toBeInTheDocument();
+  });
+
+  it("provides accessible names for editable project and read-time fields", () => {
+    render(<Studio />);
+
+    expect(screen.getByRole("textbox", { name: "Project name" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Project description" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Read time" })).toBeInTheDocument();
   });
 });

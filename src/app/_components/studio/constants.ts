@@ -1,0 +1,38 @@
+/**
+ * Shared layout, timing, and visual constants for the studio module.
+ * Pulled out of individual components so values used in more than one
+ * place (panel widths, spring configs, bubble colors) can't silently
+ * drift apart.
+ */
+
+export const PANEL_WIDTH = 340;
+
+/** How long the "Delivered"/"Read" status stays hidden after sending, in ms. */
+export const STATUS_DELAY_MS = 1200;
+
+export const KEYBOARD_HEIGHT_OPEN = 291;
+export const KEYBOARD_HEIGHT_CLOSED = 24;
+
+export const SPRING_SNAPPY = { type: "spring", stiffness: 400, damping: 25 } as const;
+export const SPRING_SOFT = { type: "spring", stiffness: 400, damping: 30 } as const;
+export const SPRING_BOUNCE = { type: "spring", bounce: 0.3, duration: 0.5 } as const;
+
+/** Outgoing-bubble gradient endpoints, keyed by bubble color + theme. */
+export const BUBBLE_GRADIENTS = {
+  blue: { light: { top: "#32ade6", bottom: "#0b93f6" }, dark: { top: "#1d95fe", bottom: "#0a84ff" } },
+  green: { light: { top: "#53d769", bottom: "#28cd41" }, dark: { top: "#53d769", bottom: "#28cd41" } },
+} as const;
+
+/** Character swatch palette, in assignment order. */
+export const CHARACTER_PALETTE = [
+  "#ff7a7a",
+  "#5aa9e6",
+  "#ffb020",
+  "#5bc98c",
+  "#b07cff",
+  "#ff8fc7",
+  "#3fc7c9",
+  "#f0894e",
+  "#9aa0ff",
+  "#e0607e",
+] as const;
