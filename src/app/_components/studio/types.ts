@@ -30,4 +30,8 @@ export type StudioState = {
   readTime: string;
   bubbleColor: BubbleColor;
   draft: string;
+  projectName: string;
+  projectDescription: string;
+  isRightPanelOpen: boolean;
+  showKeyboard: boolean;
 };

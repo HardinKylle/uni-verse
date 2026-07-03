@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #e7d6ce;
-  --foreground: #2b1520;
+  --background: #ffffff;
+  --foreground: #18181b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #18181b;
+    --foreground: #f4f4f5;
+  }
 }
 
 @theme inline {
@@ -10,6 +17,29 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* AU Studio Accents */
+  --color-accent-100: #F5E9E2; /* Linen */
+  --color-accent-200: #E3B5A4; /* Almond Silk */
+  --color-accent-500: #D44D5C; /* Lobster Pink */
+  --color-accent-600: #c23e4d; /* Slightly darker for hover */
+  --color-accent-800: #773344; /* Wine Plum */
+  --color-accent-900: #160029; /* Midnight Violet */
+
+  /* Warm-tinted neutral scale for studio chrome. Named "sand" rather than
+     reusing Tailwind's "zinc" so `zinc-*` utilities keep meaning real gray
+     everywhere in the app (including any future non-studio UI); the studio
+     opts into the warm palette explicitly via `sand-*` classes. */
+  --color-sand-50: #FAF8F6;
+  --color-sand-100: #F5F0EB;
+  --color-sand-200: #E8DED7;
+  --color-sand-300: #D8C9C0;
+  --color-sand-400: #AC9A91;
+  --color-sand-500: #7D6E67;
+  --color-sand-600: #5A4D48;
+  --color-sand-700: #453B37;
+  --color-sand-800: #2B2422;
+  --color-sand-900: #1B1615;
 }
 
 body {

@@ -1,14 +1,18 @@
 "use client";
 
+import { useEffect, useRef, memo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
 import { cn } from "@/lib/utils";
 
-import { Avatar } from "./editor-sidebar";
+import { Avatar, focusRingOutline } from "./shared-ui";
 import { useStudio } from "./studio-context";
-import type { Character } from "./types";
+import { useOutgoingBubbleGradient } from "./use-outgoing-bubble-gradient";
+import { BUBBLE_GRADIENTS, KEYBOARD_HEIGHT_CLOSED, KEYBOARD_HEIGHT_OPEN, STATUS_DELAY_MS, SPRING_SNAPPY, SPRING_SOFT } from "./constants";
+import type { Character, Message, StudioState } from "./types";
 
-const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d44d5c]";
-const lightTheme = "[--screen-bg:#fff] [--header-bg:rgba(248,248,248,0.86)] [--header-text:#000] [--subtle:#8e8e93] [--incoming:#e9e9eb] [--incoming-text:#000] [--outgoing:#0b93f6] [--divider:rgba(60,60,67,0.16)] [--field:#fff] [--field-border:#d9d9de] [--home:#000] [--plus-bg:#eaeaea]";
-const darkTheme = "[--screen-bg:#000] [--header-bg:rgba(24,24,26,0.82)] [--header-text:#fff] [--subtle:#98989f] [--incoming:#262629] [--incoming-text:#fff] [--outgoing:#0a84ff] [--divider:rgba(120,120,128,0.34)] [--field:#1c1c1e] [--field-border:#2e2e31] [--home:#fff] [--plus-bg:#1c1c1e]";
+const lightTheme = "[--screen-bg:#fff] [--header-bg:rgba(248,248,248,0.86)] [--header-text:#000] [--subtle:#8e8e93] [--incoming:#e9e9eb] [--incoming-text:#000] [--outgoing:#0b93f6] [--divider:rgba(60,60,67,0.16)] [--field:#fff] [--field-border:#d9d9de] [--home:#000] [--plus-bg:#eaeaea] [--kb-bg:#d1d3d9] [--key-bg:#fff] [--key-text:#000] [--key-shadow:rgba(0,0,0,0.3)] [--special-key:#b4b8c1]";
+const darkTheme = "[--screen-bg:#000] [--header-bg:rgba(24,24,26,0.82)] [--header-text:#fff] [--subtle:#98989f] [--incoming:#262629] [--incoming-text:#fff] [--outgoing:#0a84ff] [--divider:rgba(120,120,128,0.34)] [--field:#1c1c1e] [--field-border:#2e2e31] [--home:#fff] [--plus-bg:#1c1c1e] [--kb-bg:#161618] [--key-bg:#3b3b3d] [--key-text:#fff] [--key-shadow:rgba(0,0,0,1)] [--special-key:#2c2c2e]";
 
 export function PhonePreview() {
   const { state } = useStudio();
@@ -16,92 +20,146 @@ export function PhonePreview() {
   const owner = characterById.get(state.ownerId) ?? state.characters[0];
   const contact = state.characters.find(({ id }) => id !== owner.id) ?? state.characters[0];
   const lastMessage = state.messages.at(-1);
+  const lastMessageId = lastMessage?.id;
+
+  // The delivery/read status label appears immediately for whatever the last
+  // message was on mount, but is delayed a beat for any message sent after
+  // that (so it doesn't pop in alongside the bubble itself).
+  const [statusReadyForId, setStatusReadyForId] = useState<string | null>(() => lastMessage?.id ?? null);
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (lastMessage?.senderId !== owner.id || !lastMessageId) return;
+
+    const timer = setTimeout(() => setStatusReadyForId(lastMessageId), STATUS_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [lastMessageId, owner.id, lastMessage?.senderId]);
+
   const showStatus =
-    state.status !== "None" && lastMessage?.senderId === owner.id;
+    state.status !== "None" && lastMessage?.senderId === owner.id && statusReadyForId === lastMessageId;
+  // True only while a status is going to show but hasn't yet (mid-delay) — as
+  // opposed to no status being configured at all (state.status === "None").
+  const isStatusPending =
+    state.status !== "None" && lastMessage?.senderId === owner.id && statusReadyForId !== lastMessageId;
   const statusText =
     state.status === "Read" && state.readTime.trim()
       ? `Read ${state.readTime.trim()}`
       : state.status;
 
+  const isOwnerTyping = state.activeSenderId === owner.id && state.draft.trim() !== "";
+  const isContactTyping = state.activeSenderId !== owner.id && state.draft.trim() !== "";
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      if (typeof scrollRef.current.scrollTo === "function") {
+        scrollRef.current.scrollTo({
+          top: scrollRef.current.scrollHeight,
+          behavior: "smooth"
+        });
+      } else {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+    }
+  }, [state.messages.length, state.dark, state.showKeyboard, isContactTyping]);
+
+  useOutgoingBubbleGradient(scrollRef);
+
   return (
-    <section className="flex h-full min-w-0 flex-1 items-center justify-center overflow-auto bg-[radial-gradient(130%_120%_at_50%_-10%,#ead3cb_0%,#c98b92_100%)] p-7" aria-label="Message preview">
-      <div className="relative h-[812px] w-96 shrink-0 rounded-[56px] bg-[#0b0b0c] p-[13px] shadow-[0_34px_70px_-24px_rgba(0,0,0,0.55),inset_0_0_0_2px_#26262a]">
+    <section className="relative flex h-full min-w-0 flex-1 items-center justify-center overflow-auto bg-sand-50 bg-[linear-gradient(to_right,#77334412_1px,transparent_1px),linear-gradient(to_bottom,#77334412_1px,transparent_1px)] bg-[size:24px_24px] p-7" aria-label="Message preview">
+      <div className="relative h-[812px] w-[375px] shrink-0 origin-center scale-[0.85] rounded-[50px] bg-[#0b0b0c] p-[8px] shadow-[0_34px_70px_-24px_rgba(0,0,0,0.55),inset_0_0_0_2px_#26262a] transition-transform">
         <div
-          className={cn("relative flex h-full flex-col overflow-hidden rounded-[44px] bg-[var(--screen-bg)] font-['SF_Pro_Text'] text-[var(--header-text)] transition-colors duration-250", state.dark ? darkTheme : lightTheme, state.bubbleColor === "green" && "[--outgoing:#4cd964]")}
+          className={cn("relative flex h-full flex-col overflow-hidden rounded-[42px] bg-[var(--screen-bg)] font-['SF_Pro_Text'] text-[var(--header-text)] transition-colors duration-250", state.dark ? darkTheme : lightTheme, state.bubbleColor === "green" && "[--outgoing:#28cd41]")}
           data-bubble={state.bubbleColor}
           data-theme={state.dark ? "dark" : "light"}
         >
           <StatusBar time={state.time} />
           <ConversationHeader contact={contact} />
 
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-[var(--screen-bg)] py-1.5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:w-0">
+          <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-[var(--screen-bg)] py-1.5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:w-0">
             <div className="mt-1 mb-2.5 text-center text-[10px] tracking-[-0.1px] text-[var(--subtle)]">
               <strong className="font-normal text-[color-mix(in_srgb,var(--header-text)_58%,transparent)]">{state.day}</strong> {state.time} {state.meridiem}
             </div>
 
             <div>
-              {state.messages.map((message, index) => {
-                const mine = message.senderId === owner.id;
-                const previous = state.messages[index - 1];
-                const next = state.messages[index + 1];
-                const firstInGroup = !previous || previous.senderId !== message.senderId;
-                const lastInGroup = !next || next.senderId !== message.senderId;
-
-                return (
-                  <div
-                    key={message.id}
-                    className={cn(
-                      "flex px-3.5",
-                      mine ? "justify-end" : "justify-start",
-                      firstInGroup ? "mt-2" : "mt-0.5",
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "relative max-w-[73%] rounded-[18px] px-[13px] py-[7px] text-[15px] leading-[1.35] font-extralight tracking-[-0.005em] break-words whitespace-pre-wrap",
-                        mine
-                          ? "bg-[var(--outgoing)] text-white"
-                          : "bg-[var(--incoming)] text-[var(--incoming-text)]",
-                      )}
-                    >
-                      {message.text}
-                      {lastInGroup ? <BubbleTail mine={mine} /> : null}
-                    </div>
-                  </div>
-                );
-              })}
+              <MessageList
+                messages={state.messages}
+                ownerId={owner.id}
+                isContactTyping={isContactTyping}
+                showStatus={showStatus}
+                statusText={statusText}
+                isStatusPending={isStatusPending}
+                bubbleColor={state.bubbleColor}
+                isDark={state.dark}
+              />
             </div>
-
-            {showStatus ? <div className="flex justify-end px-4 pt-[3px] pb-0.5 text-[10px] font-normal text-[var(--subtle)]">{statusText}</div> : null}
           </div>
 
-          <MessageInput />
-          <div className="flex h-6 shrink-0 items-center justify-center bg-[var(--screen-bg)]">
-            <div className="h-[5px] w-[135px] rounded-[3px] bg-[var(--home)] opacity-92" />
-          </div>
+          <MessageInput draft={state.draft} isOwnerTyping={isOwnerTyping} />
+          <motion.div
+            initial={false}
+            animate={{ height: state.showKeyboard ? KEYBOARD_HEIGHT_OPEN : KEYBOARD_HEIGHT_CLOSED }}
+            transition={SPRING_SOFT}
+            className="w-full shrink-0 bg-[var(--screen-bg)] z-10 relative overflow-hidden"
+          >
+            <motion.div
+              initial={false}
+              animate={{ opacity: state.showKeyboard ? 0 : 1 }}
+              transition={{ duration: 0.1 }}
+              className="absolute bottom-[8px] left-1/2 h-[5px] w-[135px] -translate-x-1/2 rounded-[3px] bg-[var(--home)] opacity-92"
+            />
+          </motion.div>
+
+          <AnimatePresence>
+            {state.showKeyboard && <IosKeyboard key="keyboard" />}
+          </AnimatePresence>
         </div>
       </div>
     </section>
   );
 }
 
+const BUBBLE_TAIL_PATH =
+  "M16.8869 20.1846C11.6869 20.9846 6.55352 18.1212 4.88685 16.2879C6.60472 12.1914 -4.00107 2.24186 2.99893 2.24148C4.61754 2.24148 6 -1.9986 11.8869 1.1846C11.9081 2.47144 11.8869 6.92582 11.8869 7.6842C11.8869 18.1842 17.8869 19.5813 16.8869 20.1846Z";
+
 function BubbleTail({ mine }: { mine: boolean }) {
+  if (mine) {
+    return (
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 17 21"
+        className="absolute bottom-[-1px] right-[-4.3px] h-[18px] w-[15px]"
+        fill="none"
+        style={{ color: "color-mix(in srgb, var(--grad-top) var(--percent-top, 0%), var(--grad-bottom))" }}
+      >
+        <path d={BUBBLE_TAIL_PATH} fill="currentColor" />
+      </svg>
+    );
+  }
+
   return (
     <svg
       aria-hidden="true"
       viewBox="0 0 17 21"
-      className={cn(
-        "absolute bottom-[-1px] h-[18px] w-[15px]",
-        mine
-          ? "right-[-4.3px] text-[var(--outgoing)]"
-          : "left-[-4.3px] -scale-x-100 text-[var(--incoming)]",
-      )}
+      className="absolute bottom-[-1px] h-[18px] w-[15px] left-[-4.3px] -scale-x-100 text-[var(--incoming)]"
     >
-      <path
-        d="M16.8869 20.1846C11.6869 20.9846 6.55352 18.1212 4.88685 16.2879C6.60472 12.1914 -4.00107 2.24186 2.99893 2.24148C4.61754 2.24148 6 -1.9986 11.8869 1.1846C11.9081 2.47144 11.8869 6.92582 11.8869 7.6842C11.8869 18.1842 17.8869 19.5813 16.8869 20.1846Z"
-        fill="currentColor"
-      />
+      <path d={BUBBLE_TAIL_PATH} fill="currentColor" />
     </svg>
+  );
+}
+
+/** The iOS home-indicator bar — shared by the collapsed keyboard spacer and the open keyboard. */
+function HomeIndicator({ className }: { className?: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      className={cn("absolute bottom-[8px] left-1/2 h-[5px] w-[135px] -translate-x-1/2 rounded-[3px] bg-[var(--home)] opacity-92", className)}
+    />
   );
 }
 
@@ -122,10 +180,10 @@ function StatusBar({ time }: { time: string }) {
 function ConversationHeader({ contact }: { contact: Character }) {
   return (
     <div className="relative shrink-0 border-b border-[var(--divider)] bg-[var(--header-bg)] px-3 pt-2 pb-2.5 backdrop-blur-[18px]">
-      <button type="button" className={cn("absolute top-[15px] left-1.5 flex cursor-pointer items-center gap-px border-0 bg-transparent p-1 text-[var(--outgoing)]", focusRing)} aria-label="Back to conversations">
+      <button type="button" className={cn("absolute top-[15px] left-1.5 flex cursor-pointer items-center gap-px border-0 bg-transparent p-1 text-[var(--outgoing)]", focusRingOutline)} aria-label="Back to conversations">
         <ChevronLeftIcon />
       </button>
-      <button type="button" className={cn("absolute top-[19px] right-4 cursor-pointer border-0 bg-transparent text-[var(--outgoing)]", focusRing)} aria-label="Start video call">
+      <button type="button" className={cn("absolute top-[19px] right-4 cursor-pointer border-0 bg-transparent text-[var(--outgoing)]", focusRingOutline)} aria-label="Start video call">
         <VideoIcon />
       </button>
       <div className="flex flex-col items-center gap-1">
@@ -139,19 +197,66 @@ function ConversationHeader({ contact }: { contact: Character }) {
   );
 }
 
-function MessageInput() {
+function MessageInput({ draft, isOwnerTyping }: { draft: string; isOwnerTyping: boolean }) {
   return (
-    <div className="flex shrink-0 items-end gap-2 bg-[var(--screen-bg)] px-3 pt-1.5 pb-1">
-      <button type="button" className={cn("flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-[var(--plus-bg)] p-0 text-[var(--subtle)]", focusRing)} aria-label="Add attachment">
+    <div className="flex shrink-0 items-center gap-2 bg-[var(--screen-bg)] px-3 pt-1.5 pb-2 z-10 relative">
+      <button type="button" className={cn("flex size-[30px] shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-[var(--plus-bg)] p-0 text-[var(--subtle)]", focusRingOutline)} aria-label="Add attachment">
         <PlusIcon />
       </button>
-      <div className="flex min-h-[35px] flex-1 items-center rounded-[18px] border border-[var(--field-border)] bg-[var(--field)] py-[5px] pr-1.5 pl-3.5">
-        <span className="flex-1 text-[15px] text-[var(--subtle)]">iMessage</span>
-        <button type="button" className={cn("flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-[var(--outgoing)] p-0 text-white", focusRing)} aria-label="Send message">
-          <SendIcon />
-        </button>
+      <div className="flex min-h-[35px] flex-1 min-w-0 items-center rounded-[18px] border border-[var(--field-border)] bg-[var(--field)] py-[5px] pr-1.5 pl-3.5">
+        <span className={cn("flex-1 min-w-0 text-[15px] font-light truncate mr-2", isOwnerTyping ? "text-[var(--header-text)]" : "text-[var(--subtle)]")}>
+          {isOwnerTyping ? draft : "iMessage"}
+        </span>
+        {isOwnerTyping ? (
+          <button type="button" className={cn("flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 p-0 transition-colors duration-200 bg-[var(--outgoing)] text-white", focusRingOutline)} aria-label="Send message">
+            <SendIcon />
+          </button>
+        ) : (
+          <button type="button" className={cn("flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 p-0 transition-colors duration-200 bg-transparent text-[var(--subtle)]", focusRingOutline)} aria-label="Record voice message">
+            <InputMicIcon />
+          </button>
+        )}
       </div>
     </div>
+  );
+}
+
+function TypingBubble() {
+  const dotVariants = {
+    initial: { y: 0, opacity: 0.4 },
+    animate: {
+      y: [0, -4, 0, 0],
+      opacity: [0.4, 1, 0.4, 0.4]
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10, scale: 0.95, originX: 0, originY: 1 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={SPRING_SNAPPY}
+      className="flex px-3.5 justify-start mt-0.5 mb-1"
+    >
+      <div className="relative rounded-[18px] px-[14px] py-[10px] bg-[var(--incoming)] flex items-center justify-center gap-[4px] h-[36px]">
+        {[0, 1, 2].map((i) => (
+          <motion.div
+            key={i}
+            variants={dotVariants}
+            initial="initial"
+            animate="animate"
+            transition={{
+              repeat: Infinity,
+              duration: 1.4,
+              times: [0, 0.2, 0.4, 1],
+              delay: i * 0.2,
+              ease: "easeInOut"
+            }}
+            className="size-[6px] rounded-full bg-[var(--subtle)]"
+          />
+        ))}
+        <BubbleTail mine={false} />
+      </div>
+    </motion.div>
   );
 }
 
@@ -182,7 +287,7 @@ function VideoIcon() {
 
 function SignalIcon() {
   return (
-    <svg width="18" height="12" viewBox="0 0 18 12">
+    <svg aria-hidden="true" className="overflow-visible" width="18" height="12" viewBox="0 0 18 12">
       <rect y="8" width="3" height="4" rx="1" fill="currentColor" />
       <rect x="5" y="5" width="3" height="7" rx="1" fill="currentColor" />
       <rect x="10" y="2.5" width="3" height="9.5" rx="1" fill="currentColor" />
@@ -193,7 +298,7 @@ function SignalIcon() {
 
 function WifiIcon() {
   return (
-    <svg aria-hidden="true" width="17" height="12" viewBox="0 0 17 12">
+    <svg className="overflow-visible" aria-hidden="true" width="17" height="12" viewBox="0 0 17 12">
       <path d="M1.4 3.85a10.8 10.8 0 0 1 14.2 0M4.15 6.75a6.7 6.7 0 0 1 8.7 0" stroke="currentColor" strokeWidth="2.3" fill="none" strokeLinecap="round" />
       <circle cx="8.5" cy="10.15" r="1.5" fill="currentColor" />
     </svg>
@@ -202,7 +307,7 @@ function WifiIcon() {
 
 function BatteryIcon() {
   return (
-    <svg width="25" height="12" viewBox="0 0 25 12">
+    <svg aria-hidden="true" className="overflow-visible" width="25" height="12" viewBox="0 0 25 12">
       <rect x=".5" y=".5" width="21" height="11" rx="3" stroke="currentColor" fill="none" opacity=".4" />
       <rect x="2" y="2" width="16" height="8" rx="1.5" fill="currentColor" />
       <rect x="23" y="4" width="2" height="4" rx="1" fill="currentColor" opacity=".5" />
@@ -225,3 +330,214 @@ function SendIcon() {
     </svg>
   );
 }
+
+function IosKeyboard() {
+  const row1 = ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"];
+  const row2 = ["A", "S", "D", "F", "G", "H", "J", "K", "L"];
+  const row3 = ["Z", "X", "C", "V", "B", "N", "M"];
+
+  return (
+    <motion.div
+      aria-hidden="true"
+      initial={{ y: "100%" }}
+      animate={{ y: 0 }}
+      exit={{ y: "100%" }}
+      transition={SPRING_SOFT}
+      className="absolute bottom-0 left-0 flex flex-col justify-between bg-[var(--kb-bg)] pb-[20px] pt-[10px] px-1 w-full shrink-0 z-20 font-['SF_Pro_Text'] select-none h-[291px]"
+    >
+      <div className="flex justify-center gap-[5px]">
+        {row1.map((k) => (
+          <Key key={k}>{k}</Key>
+        ))}
+      </div>
+      <div className="flex justify-center gap-[5px]">
+        {row2.map((k) => (
+          <Key key={k}>{k}</Key>
+        ))}
+      </div>
+      <div className="flex justify-center gap-[5px]">
+        <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[5px] bg-white text-black shadow-[0_1px_0_var(--key-shadow)]">
+          <ShiftIconActive />
+        </div>
+        {row3.map((k) => (
+          <Key key={k}>{k}</Key>
+        ))}
+        <SpecialKey width="42px">
+          <DeleteIcon />
+        </SpecialKey>
+      </div>
+      <div className="flex justify-center gap-[5px]">
+        <SpecialKey width="88px">123</SpecialKey>
+        <div className="flex-1 max-w-[180px]">
+          <Key width="100%" fontSize="15px">space</Key>
+        </div>
+        <SpecialKey width="88px">return</SpecialKey>
+      </div>
+
+      <div className="relative h-[34px] flex items-center justify-between px-4 text-[var(--header-text)]">
+        <EmojiIcon />
+        <MicIcon />
+      </div>
+
+      <HomeIndicator />
+    </motion.div>
+  );
+}
+
+function Key({ children, width = "31.5px", fontSize = "23px" }: { children: React.ReactNode; width?: string; fontSize?: string }) {
+  return (
+    <div
+      className="flex h-[42px] items-center justify-center rounded-[5px] bg-[var(--key-bg)] font-light text-[var(--key-text)] shadow-[0_1px_0_var(--key-shadow)]"
+      style={{ width, fontSize }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function SpecialKey({ children, width }: { children: React.ReactNode; width: string }) {
+  return (
+    <div
+      className="flex h-[42px] shrink-0 items-center justify-center rounded-[5px] bg-[var(--special-key)] text-[15px] font-normal text-[var(--key-text)] shadow-[0_1px_0_var(--key-shadow)]"
+      style={{ width }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function ShiftIconActive() {
+  return (
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 3L4 11h4v8h8v-8h4l-8-8z" />
+    </svg>
+  );
+}
+
+function DeleteIcon() {
+  return (
+    <svg aria-hidden="true" width="29" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round">
+      <path d="M21 4H8l-7 8 7 8h13a2 2 0 002-2V6a2 2 0 00-2-2z" />
+      <path d="M18 9l-6 6M12 9l6 6" />
+    </svg>
+  );
+}
+
+function EmojiIcon() {
+  return (
+    <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3">
+      <circle cx="12" cy="12" r="10.25" />
+      <g fill="currentColor" stroke="none">
+        <circle cx="8.4" cy="9.4" r="1.4" />
+        <circle cx="15.6" cy="9.4" r="1.4" />
+        <path d="M7 13 Q12 13.8 17 13 A5.6 4.2 0 0 1 7 13 Z" />
+      </g>
+    </svg>
+  );
+}
+
+function MicIcon() {
+  return (
+    <svg aria-hidden="true" width="21" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
+      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 18.5v3.5M8 22h8" />
+    </svg>
+  );
+}
+
+function InputMicIcon() {
+  return (
+    <svg aria-hidden="true" width="14" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" fill="currentColor" />
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 18.5v3.5M8 22h8" />
+    </svg>
+  );
+}
+
+const MessageList = memo(function MessageList({
+  messages,
+  ownerId,
+  isContactTyping,
+  showStatus,
+  statusText,
+  isStatusPending,
+  bubbleColor,
+  isDark,
+}: {
+  messages: Message[];
+  ownerId: string;
+  isContactTyping: boolean;
+  showStatus: boolean;
+  statusText: string;
+  isStatusPending: boolean;
+  bubbleColor: StudioState["bubbleColor"];
+  isDark: boolean;
+}) {
+  const gradient = BUBBLE_GRADIENTS[bubbleColor][isDark ? "dark" : "light"];
+
+  return (
+    <AnimatePresence initial={false}>
+      {messages.map((message, index) => {
+        const mine = message.senderId === ownerId;
+        const previous = messages[index - 1];
+        const next = messages[index + 1];
+        const firstInGroup = !previous || previous.senderId !== message.senderId;
+        const lastInGroup = !next || next.senderId !== message.senderId;
+        // The very last message's tail waits for its status to land, so the
+        // tail and the "Delivered"/"Read" text appear together as one unit.
+        const isLastOverall = index === messages.length - 1;
+        const suppressTail = mine && isLastOverall && isStatusPending;
+
+        return (
+          <motion.div
+            key={message.id}
+            initial={{ opacity: 0, y: 10, scale: 0.95, originX: mine ? 1 : 0, originY: 1 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={SPRING_SNAPPY}
+            className={cn(
+              "flex px-3.5",
+              mine ? "justify-end" : "justify-start",
+              firstInGroup ? "mt-2" : "mt-0.5",
+            )}
+          >
+            <div
+              className={cn(
+                "relative max-w-[73%] rounded-[18px] px-[13px] py-[7px] text-[15px] leading-[1.35] font-extralight tracking-[-0.005em] break-words whitespace-pre-wrap",
+                mine
+                  ? "text-white outgoing-bubble"
+                  : "bg-[var(--incoming)] text-[var(--incoming-text)]",
+              )}
+              style={
+                mine
+                  ? ({
+                      "--grad-top": gradient.top,
+                      "--grad-bottom": gradient.bottom,
+                      backgroundColor: "color-mix(in srgb, var(--grad-top) var(--percent-top, 0%), var(--grad-bottom))",
+                    } as React.CSSProperties)
+                  : undefined
+              }
+            >
+              {message.text}
+              {lastInGroup && (!isContactTyping || mine) && !suppressTail ? <BubbleTail mine={mine} /> : null}
+            </div>
+          </motion.div>
+        );
+      })}
+      {showStatus ? (
+        <motion.div
+          key="status"
+          initial={{ opacity: 0, y: -10, height: 0 }}
+          animate={{ opacity: 1, y: 0, height: "auto", transition: SPRING_SNAPPY }}
+          // Exit fast rather than mirroring the entrance spring: this status is
+          // superseded the instant a new outgoing message lands, so a slow
+          // exit would still be visibly shrinking underneath the new bubble.
+          exit={{ opacity: 0, y: -10, height: 0, transition: { duration: 0.12 } }}
+          className="flex justify-end px-4 pt-[3px] pb-0.5 text-[10px] font-normal text-[var(--subtle)] overflow-hidden"
+        >
+          <div className="flex justify-end w-full">{statusText}</div>
+        </motion.div>
+      ) : null}
+      {isContactTyping && <TypingBubble key="typing-bubble" />}
+    </AnimatePresence>
+  );
+});
