@@ -33,6 +33,14 @@ export function addMessage(state: StudioState): StudioState {
   };
 }
 
+export function addTimestamp(state: StudioState): StudioState {
+  const text = `${state.day} ${state.time} ${state.meridiem}`;
+  return {
+    ...state,
+    messages: [...state.messages, { id: newId("m"), senderId: "system", text, type: "timestamp" }],
+  };
+}
+
 export function updateMessageText(state: StudioState, id: string, text: string): StudioState {
   return {
     ...state,
@@ -41,7 +49,32 @@ export function updateMessageText(state: StudioState, id: string, text: string):
 }
 
 export function deleteMessage(state: StudioState, id: string): StudioState {
-  return { ...state, messages: state.messages.filter((message) => message.id !== id) };
+  return {
+    ...state,
+    messages: state.messages.filter((message) => message.id !== id),
+    frameBreaks: state.frameBreaks.filter((breakId) => breakId !== id),
+  };
+}
+
+/** Toggles a forced export-frame break immediately before the given message. */
+export function toggleFrameBreak(state: StudioState, id: string): StudioState {
+  const hasBreak = state.frameBreaks.includes(id);
+  return {
+    ...state,
+    frameBreaks: hasBreak
+      ? state.frameBreaks.filter((breakId) => breakId !== id)
+      : [...state.frameBreaks, id],
+  };
+}
+
+export function duplicateMessage(state: StudioState, id: string): StudioState {
+  const index = state.messages.findIndex((m) => m.id === id);
+  if (index === -1) return state;
+  const original = state.messages[index];
+  const duplicatedMessage = { ...original, id: newId("m") };
+  const newMessages = [...state.messages];
+  newMessages.splice(index + 1, 0, duplicatedMessage);
+  return { ...state, messages: newMessages };
 }
 
 export function cycleMessageSender(state: StudioState, messageId: string): StudioState {
@@ -102,7 +135,9 @@ export function addCharacter(state: StudioState): StudioState {
 
 /** No-op when only one character remains — a cast needs at least one sender/owner. */
 export function deleteCharacter(state: StudioState, id: string): StudioState {
-  if (state.characters.length <= 1) return state;
+  if (state.characters.length <= 1 || !state.characters.some((character) => character.id === id)) {
+    return state;
+  }
 
   const characters = state.characters.filter(({ id: characterId }) => characterId !== id);
   const replacementId = characters[0].id;

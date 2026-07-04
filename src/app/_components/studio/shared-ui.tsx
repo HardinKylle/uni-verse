@@ -15,12 +15,14 @@ export const standardInput = cn(
   "w-full rounded-md border border-transparent bg-transparent px-2.5 py-1.5 text-[13px] text-sand-900 placeholder:text-sand-400 transition-colors hover:bg-sand-100/80 focus:bg-white focus:ring-1 focus:ring-sand-200 focus:shadow-sm focus:outline-none",
 );
 
-export const miniLabel = "mb-2 block text-[10px] font-semibold tracking-[0.06em] text-sand-500 uppercase";
+export const miniLabel = "mb-2 block font-mono text-[9.5px] font-medium tracking-[0.05em] text-sand-500 uppercase";
+
+export const panelTitle = "font-mono text-[10.5px] font-medium tracking-[0.05em] text-sand-800 uppercase";
 
 export function Panel({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
   return (
     <section className={cn("mb-8", className)}>
-      <h2 className="mb-3.5 text-[11px] font-bold tracking-[0.08em] text-sand-800 uppercase">{title}</h2>
+      <h2 className={cn(panelTitle, "mb-3.5")}>{title}</h2>
       {children}
     </section>
   );

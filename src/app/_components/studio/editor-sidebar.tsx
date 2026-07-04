@@ -27,7 +27,7 @@ function ProjectInfo() {
     <div className="flex flex-col gap-1.5 px-1 pt-2 pb-6 mb-2 border-b border-sand-100">
       <input
         aria-label="Project name"
-        className={cn(standardInput, "text-[15px] font-bold tracking-tight placeholder:text-sand-300")}
+        className={cn(standardInput, "font-display text-[19px] italic text-sand-900 placeholder:text-sand-300 placeholder:not-italic")}
         value={state.projectName}
         onChange={(e) => setState((s) => ({ ...s, projectName: e.target.value }))}
         placeholder="Project Name"
@@ -83,7 +83,11 @@ function CastSection() {
                 <Avatar character={character} size="small" />
                 <div className="min-w-0 flex-1">
                   <strong className={cn("block truncate text-[13px] font-semibold", isEditing ? "text-accent-900" : "text-sand-900")}>{character.name || "Unnamed"}</strong>
-                  {isOwner ? <span className="mt-0.5 block text-[10px] font-bold tracking-wide text-accent-500 uppercase">This phone</span> : null}
+                  {isOwner ? (
+                    <span className="mt-1 inline-flex items-center rounded-full bg-accent-900 px-1.5 py-[1px] text-[9px] font-bold tracking-wide text-accent-100 uppercase">
+                      This phone
+                    </span>
+                  ) : null}
                 </div>
                 <button
                   type="button"
