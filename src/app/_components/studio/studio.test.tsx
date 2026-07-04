@@ -10,7 +10,7 @@ describe("Studio", () => {
     render(<Studio />);
 
     const preview = screen.getByRole("region", { name: "Message preview" });
-    expect(within(preview).getByText("i dont know")).toBeInTheDocument();
+    expect(within(preview).getByText("maybe. why?")).toBeInTheDocument();
 
     await user.click(screen.getAllByRole("button", { name: "Edit" })[0]);
     const nameInput = screen.getByRole("textbox", { name: "Character name" });

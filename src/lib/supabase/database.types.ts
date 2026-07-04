@@ -176,7 +176,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      bootstrap_workspace: {
+        Args: {
+          p_characters: Json
+          p_script: Json
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

@@ -4,9 +4,9 @@
 a fake conversation as a script, render it into a pixel-faithful social-media platform skin, and
 batch-export the sequential screenshots that make up a story episode.
 
-Phase 1 (current) is client-side only: no accounts, no backend, no cloud. Projects, cast, and
-conversations are stored in the browser plus a backup file export/import. Phase 2 adds accounts and
-Supabase-backed cloud sync; Phase 3 adds public reader pages and social features. Do not build ahead of
+Phase 2 (current) adds accounts and Supabase-backed cloud persistence while retaining anonymous demo
+mode. Phase 1 stored projects, cast, and conversations only in browser memory. Phase 3 adds public reader
+pages and social features. Do not build ahead of
 the current phase's scope.
 
 ## Stack
