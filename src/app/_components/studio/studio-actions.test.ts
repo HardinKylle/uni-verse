@@ -3,11 +3,14 @@ import { describe, expect, it } from "vitest";
 import {
   addCharacter,
   addMessage,
+  addTimestamp,
   cycleMessageSender,
   deleteCharacter,
   deleteMessage,
+  duplicateMessage,
   reorderMessages,
   selectMentionSender,
+  toggleFrameBreak,
   toggleEditingCharacter,
   updateCharacter,
   updateMessageText,
@@ -40,6 +43,7 @@ function makeState(overrides: Partial<StudioState> = {}): StudioState {
     projectDescription: "A new story...",
     isRightPanelOpen: true,
     showKeyboard: false,
+    frameBreaks: [],
     ...overrides,
   };
 }
@@ -74,8 +78,45 @@ describe("updateMessageText / deleteMessage", () => {
   });
 
   it("removes the targeted message", () => {
-    const next = deleteMessage(makeState(), "m1");
+    const next = deleteMessage(makeState({ frameBreaks: ["m1", "m2"] }), "m1");
     expect(next.messages.map((m) => m.id)).toEqual(["m2"]);
+    expect(next.frameBreaks).toEqual(["m2"]);
+  });
+});
+
+describe("timestamp, duplication, and frame breaks", () => {
+  it("adds a timestamp from the configured date fields", () => {
+    const next = addTimestamp(makeState({ day: "Friday", time: "11:45", meridiem: "PM" }));
+    expect(next.messages.at(-1)).toMatchObject({
+      senderId: "system",
+      text: "Friday 11:45 PM",
+      type: "timestamp",
+    });
+  });
+
+  it("duplicates a message immediately after the source with a fresh id", () => {
+    const next = duplicateMessage(makeState(), "m1");
+    expect(next.messages.map((message) => message.text)).toEqual(["hi", "hi", "hey"]);
+    expect(next.messages[1].id).not.toBe("m1");
+  });
+
+  it("preserves timestamp type when duplicating a timestamp", () => {
+    const timestamp = { id: "t1", senderId: "system", text: "Later", type: "timestamp" as const };
+    const next = duplicateMessage(makeState({ messages: [timestamp] }), "t1");
+    expect(next.messages[1]).toMatchObject({ senderId: "system", text: "Later", type: "timestamp" });
+  });
+
+  it("does nothing when duplicating a missing message", () => {
+    const state = makeState();
+    expect(duplicateMessage(state, "missing")).toBe(state);
+  });
+
+  it("toggles a frame break without changing messages", () => {
+    const state = makeState();
+    const added = toggleFrameBreak(state, "m2");
+    expect(added.frameBreaks).toEqual(["m2"]);
+    expect(added.messages).toBe(state.messages);
+    expect(toggleFrameBreak(added, "m2").frameBreaks).toEqual([]);
   });
 });
 
@@ -86,6 +127,11 @@ describe("cycleMessageSender", () => {
 
     const wrapped = cycleMessageSender(next, "m1");
     expect(wrapped.messages.find((m) => m.id === "m1")?.senderId).toBe("c1");
+  });
+
+  it("does nothing for a missing message", () => {
+    const state = makeState();
+    expect(cycleMessageSender(state, "missing")).toBe(state);
   });
 });
 
@@ -98,6 +144,12 @@ describe("reorderMessages", () => {
   it("is a no-op when active and over ids match", () => {
     const state = makeState();
     expect(reorderMessages(state, "m1", "m1")).toBe(state);
+  });
+
+  it("is a no-op when either drag id is missing", () => {
+    const state = makeState();
+    expect(reorderMessages(state, "missing", "m1")).toBe(state);
+    expect(reorderMessages(state, "m1", "missing")).toBe(state);
   });
 });
 
@@ -140,6 +192,11 @@ describe("character actions", () => {
   it("deleteCharacter refuses to remove the last character", () => {
     const state = makeState({ characters: [{ id: "c1", name: "Jaz", color: "#ff7a7a" }] });
     expect(deleteCharacter(state, "c1")).toBe(state);
+  });
+
+  it("deleteCharacter ignores an unknown id", () => {
+    const state = makeState({ editingCharacterId: "c1" });
+    expect(deleteCharacter(state, "missing")).toBe(state);
   });
 
   it("toggleEditingCharacter opens then closes editing for a character", () => {

@@ -36,3 +36,19 @@ export const CHARACTER_PALETTE = [
   "#9aa0ff",
   "#e0607e",
 ] as const;
+
+/** Fixed export/preview screen width in CSS px — matches the iOS 375pt design width. */
+export const PHONE_SCREEN_WIDTH = 375;
+
+/** Export raster scale (2x = retina). */
+export const EXPORT_SCALE = 2;
+
+/** Selectable export frame shapes. Width:height are ratio units, not pixels. */
+export const EXPORT_ASPECT_RATIOS = [
+  { id: "tall", label: "Tall (9:19.5)", width: 9, height: 19.5 },
+  { id: "portrait", label: "Portrait (4:5)", width: 4, height: 5 },
+  { id: "classic", label: "Classic (3:4)", width: 3, height: 4 },
+  { id: "square", label: "Square (1:1)", width: 1, height: 1 },
+] as const;
+
+export type ExportAspectRatioId = (typeof EXPORT_ASPECT_RATIOS)[number]["id"];

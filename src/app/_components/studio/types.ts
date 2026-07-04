@@ -5,10 +5,13 @@ export type Character = {
   avatar?: string;
 };
 
+export type MessageType = "text" | "timestamp";
+
 export type Message = {
   id: string;
   senderId: string;
   text: string;
+  type?: MessageType;
 };
 
 export type DeliveryStatus = "Delivered" | "Read" | "None";
@@ -34,4 +37,6 @@ export type StudioState = {
   projectDescription: string;
   isRightPanelOpen: boolean;
   showKeyboard: boolean;
+  /** Message ids that force a new export frame to start immediately before them. */
+  frameBreaks: string[];
 };

@@ -11,14 +11,52 @@ import { useOutgoingBubbleGradient } from "./use-outgoing-bubble-gradient";
 import { BUBBLE_GRADIENTS, KEYBOARD_HEIGHT_CLOSED, KEYBOARD_HEIGHT_OPEN, STATUS_DELAY_MS, SPRING_SNAPPY, SPRING_SOFT } from "./constants";
 import type { Character, Message, StudioState } from "./types";
 
-const lightTheme = "[--screen-bg:#fff] [--header-bg:rgba(248,248,248,0.86)] [--header-text:#000] [--subtle:#8e8e93] [--incoming:#e9e9eb] [--incoming-text:#000] [--outgoing:#0b93f6] [--divider:rgba(60,60,67,0.16)] [--field:#fff] [--field-border:#d9d9de] [--home:#000] [--plus-bg:#eaeaea] [--kb-bg:#d1d3d9] [--key-bg:#fff] [--key-text:#000] [--key-shadow:rgba(0,0,0,0.3)] [--special-key:#b4b8c1]";
-const darkTheme = "[--screen-bg:#000] [--header-bg:rgba(24,24,26,0.82)] [--header-text:#fff] [--subtle:#98989f] [--incoming:#262629] [--incoming-text:#fff] [--outgoing:#0a84ff] [--divider:rgba(120,120,128,0.34)] [--field:#1c1c1e] [--field-border:#2e2e31] [--home:#fff] [--plus-bg:#1c1c1e] [--kb-bg:#161618] [--key-bg:#3b3b3d] [--key-text:#fff] [--key-shadow:rgba(0,0,0,1)] [--special-key:#2c2c2e]";
+export const lightTheme = "[--screen-bg:#fff] [--header-bg:rgba(248,248,248,0.86)] [--header-text:#000] [--subtle:#8e8e93] [--incoming:#e9e9eb] [--incoming-text:#000] [--outgoing:#0b93f6] [--divider:rgba(60,60,67,0.16)] [--field:#fff] [--field-border:#d9d9de] [--home:#000] [--plus-bg:#eaeaea] [--kb-bg:#d1d3d9] [--key-bg:#fff] [--key-text:#000] [--key-shadow:rgba(0,0,0,0.3)] [--special-key:#b4b8c1]";
+export const darkTheme = "[--screen-bg:#000] [--header-bg:rgba(24,24,26,0.82)] [--header-text:#fff] [--subtle:#98989f] [--incoming:#262629] [--incoming-text:#fff] [--outgoing:#0a84ff] [--divider:rgba(120,120,128,0.34)] [--field:#1c1c1e] [--field-border:#2e2e31] [--home:#fff] [--plus-bg:#1c1c1e] [--kb-bg:#161618] [--key-bg:#3b3b3d] [--key-text:#fff] [--key-shadow:rgba(0,0,0,1)] [--special-key:#2c2c2e]";
 
-export function PhonePreview() {
-  const { state } = useStudio();
+/** Grouping flags for consecutive same-sender bubbles, shared by the live preview and the static export renderer. */
+export function getMessageGroupFlags(messages: Message[], index: number) {
+  const message = messages[index];
+  const previous = messages[index - 1];
+  const next = messages[index + 1];
+  const firstInGroup = !previous || previous.senderId !== message.senderId || previous.type === "timestamp";
+  const lastInGroup = !next || next.senderId !== message.senderId || next.type === "timestamp";
+  return { firstInGroup, lastInGroup };
+}
+
+export type GroupFlags = { firstInGroup: boolean; lastInGroup: boolean };
+
+/**
+ * Precomputes grouping flags from the *whole* conversation, keyed by message id.
+ * Export frames render a slice of the conversation, but grouping (and the
+ * margin it drives) must stay based on the full conversation — otherwise a
+ * message that measures as a tight group-continuation could land at the top
+ * of a frame and render taller as a group-start, throwing off that frame's
+ * height budget.
+ */
+export function computeGroupFlagsMap(messages: Message[]): Map<string, GroupFlags> {
+  const map = new Map<string, GroupFlags>();
+  messages.forEach((message, index) => {
+    map.set(message.id, getMessageGroupFlags(messages, index));
+  });
+  return map;
+}
+
+export function getStatusText(status: StudioState["status"], readTime: string): string {
+  return status === "Read" && readTime.trim() ? `Read ${readTime.trim()}` : status;
+}
+
+/** Owner (device holder) + contact (header subject), shared by the live preview and the static export renderer. */
+export function getOwnerAndContact(state: Pick<StudioState, "characters" | "ownerId">) {
   const characterById = new Map(state.characters.map((character) => [character.id, character]));
   const owner = characterById.get(state.ownerId) ?? state.characters[0];
   const contact = state.characters.find(({ id }) => id !== owner.id) ?? state.characters[0];
+  return { owner, contact };
+}
+
+export function PhonePreview() {
+  const { state } = useStudio();
+  const { owner, contact } = getOwnerAndContact(state);
   const lastMessage = state.messages.at(-1);
   const lastMessageId = lastMessage?.id;
 
@@ -45,10 +83,7 @@ export function PhonePreview() {
   // opposed to no status being configured at all (state.status === "None").
   const isStatusPending =
     state.status !== "None" && lastMessage?.senderId === owner.id && statusReadyForId !== lastMessageId;
-  const statusText =
-    state.status === "Read" && state.readTime.trim()
-      ? `Read ${state.readTime.trim()}`
-      : state.status;
+  const statusText = getStatusText(state.status, state.readTime);
 
   const isOwnerTyping = state.activeSenderId === owner.id && state.draft.trim() !== "";
   const isContactTyping = state.activeSenderId !== owner.id && state.draft.trim() !== "";
@@ -79,7 +114,7 @@ export function PhonePreview() {
           data-theme={state.dark ? "dark" : "light"}
         >
           <StatusBar time={state.time} />
-          <ConversationHeader contact={contact} />
+          <ConversationHeader contact={contact} inbox={state.inbox} />
 
           <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-[var(--screen-bg)] py-1.5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:w-0">
             <div className="mt-1 mb-2.5 text-center text-[10px] tracking-[-0.1px] text-[var(--subtle)]">
@@ -127,7 +162,7 @@ export function PhonePreview() {
 const BUBBLE_TAIL_PATH =
   "M16.8869 20.1846C11.6869 20.9846 6.55352 18.1212 4.88685 16.2879C6.60472 12.1914 -4.00107 2.24186 2.99893 2.24148C4.61754 2.24148 6 -1.9986 11.8869 1.1846C11.9081 2.47144 11.8869 6.92582 11.8869 7.6842C11.8869 18.1842 17.8869 19.5813 16.8869 20.1846Z";
 
-function BubbleTail({ mine }: { mine: boolean }) {
+export function BubbleTail({ mine }: { mine: boolean }) {
   if (mine) {
     return (
       <svg
@@ -154,7 +189,7 @@ function BubbleTail({ mine }: { mine: boolean }) {
 }
 
 /** The iOS home-indicator bar — shared by the collapsed keyboard spacer and the open keyboard. */
-function HomeIndicator({ className }: { className?: string }) {
+export function HomeIndicator({ className }: { className?: string }) {
   return (
     <div
       aria-hidden="true"
@@ -163,7 +198,7 @@ function HomeIndicator({ className }: { className?: string }) {
   );
 }
 
-function StatusBar({ time }: { time: string }) {
+export function StatusBar({ time }: { time: string }) {
   return (
     <div className="relative flex h-[52px] shrink-0 items-start justify-between bg-[var(--header-bg)] px-[30px]">
       <span className="mt-[15px] text-sm font-medium tracking-[0.2px] text-[var(--header-text)]">{time}</span>
@@ -177,11 +212,16 @@ function StatusBar({ time }: { time: string }) {
   );
 }
 
-function ConversationHeader({ contact }: { contact: Character }) {
+export function ConversationHeader({ contact, inbox }: { contact: Character; inbox: number | "" }) {
   return (
     <div className="relative shrink-0 border-b border-[var(--divider)] bg-[var(--header-bg)] px-3 pt-2 pb-2.5 backdrop-blur-[18px]">
-      <button type="button" className={cn("absolute top-[15px] left-1.5 flex cursor-pointer items-center gap-px border-0 bg-transparent p-1 text-[var(--outgoing)]", focusRingOutline)} aria-label="Back to conversations">
+      <button type="button" className={cn("absolute top-[15px] left-1.5 flex cursor-pointer items-center gap-0.5 border-0 bg-transparent p-1 text-[var(--outgoing)]", focusRingOutline)} aria-label="Back to conversations">
         <ChevronLeftIcon />
+        {inbox !== "" && (
+          <span className="flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[var(--outgoing)] px-1.5 font-['SF_Pro_Text'] text-[11px] font-normal leading-none tracking-[-0.02em] text-white">
+            {inbox}
+          </span>
+        )}
       </button>
       <button type="button" className={cn("absolute top-[19px] right-4 cursor-pointer border-0 bg-transparent text-[var(--outgoing)]", focusRingOutline)} aria-label="Start video call">
         <VideoIcon />
@@ -331,7 +371,7 @@ function SendIcon() {
   );
 }
 
-function IosKeyboard() {
+export function IosKeyboard({ animated = true, showHomeIndicator = true }: { animated?: boolean; showHomeIndicator?: boolean }) {
   const row1 = ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"];
   const row2 = ["A", "S", "D", "F", "G", "H", "J", "K", "L"];
   const row3 = ["Z", "X", "C", "V", "B", "N", "M"];
@@ -339,7 +379,7 @@ function IosKeyboard() {
   return (
     <motion.div
       aria-hidden="true"
-      initial={{ y: "100%" }}
+      initial={animated ? { y: "100%" } : false}
       animate={{ y: 0 }}
       exit={{ y: "100%" }}
       transition={SPRING_SOFT}
@@ -379,7 +419,7 @@ function IosKeyboard() {
         <MicIcon />
       </div>
 
-      <HomeIndicator />
+      {showHomeIndicator ? <HomeIndicator /> : null}
     </motion.div>
   );
 }
@@ -454,6 +494,57 @@ function InputMicIcon() {
   );
 }
 
+export const timestampRowClassName = "mt-3 mb-2 flex w-full justify-center px-4";
+
+export function TimestampDivider({ text }: { text: string }) {
+  return (
+    <span className="text-center text-[10px] tracking-[-0.1px] text-[var(--subtle)]">
+      <strong className="font-normal text-[color-mix(in_srgb,var(--header-text)_58%,transparent)]">
+        {text}
+      </strong>
+    </span>
+  );
+}
+
+export function messageRowClassName(mine: boolean, firstInGroup: boolean) {
+  return cn("flex px-3.5", mine ? "justify-end" : "justify-start", firstInGroup ? "mt-2" : "mt-0.5");
+}
+
+export function MessageBubble({
+  message,
+  mine,
+  gradient,
+  showTail,
+}: {
+  message: Message;
+  mine: boolean;
+  gradient: { top: string; bottom: string };
+  showTail: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "relative max-w-[73%] rounded-[18px] px-[13px] py-[7px] text-[15px] leading-[1.35] font-extralight tracking-[-0.005em] break-words whitespace-pre-wrap",
+        mine
+          ? "text-white outgoing-bubble"
+          : "bg-[var(--incoming)] text-[var(--incoming-text)]",
+      )}
+      style={
+        mine
+          ? ({
+              "--grad-top": gradient.top,
+              "--grad-bottom": gradient.bottom,
+              backgroundColor: "color-mix(in srgb, var(--grad-top) var(--percent-top, 0%), var(--grad-bottom))",
+            } as React.CSSProperties)
+          : undefined
+      }
+    >
+      {message.text}
+      {showTail ? <BubbleTail mine={mine} /> : null}
+    </div>
+  );
+}
+
 const MessageList = memo(function MessageList({
   messages,
   ownerId,
@@ -478,11 +569,22 @@ const MessageList = memo(function MessageList({
   return (
     <AnimatePresence initial={false}>
       {messages.map((message, index) => {
+        if (message.type === "timestamp") {
+          return (
+            <motion.div
+              key={message.id}
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={SPRING_SNAPPY}
+              className={timestampRowClassName}
+            >
+              <TimestampDivider text={message.text} />
+            </motion.div>
+          );
+        }
+
         const mine = message.senderId === ownerId;
-        const previous = messages[index - 1];
-        const next = messages[index + 1];
-        const firstInGroup = !previous || previous.senderId !== message.senderId;
-        const lastInGroup = !next || next.senderId !== message.senderId;
+        const { firstInGroup, lastInGroup } = getMessageGroupFlags(messages, index);
         // The very last message's tail waits for its status to land, so the
         // tail and the "Delivered"/"Read" text appear together as one unit.
         const isLastOverall = index === messages.length - 1;
@@ -494,32 +596,14 @@ const MessageList = memo(function MessageList({
             initial={{ opacity: 0, y: 10, scale: 0.95, originX: mine ? 1 : 0, originY: 1 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={SPRING_SNAPPY}
-            className={cn(
-              "flex px-3.5",
-              mine ? "justify-end" : "justify-start",
-              firstInGroup ? "mt-2" : "mt-0.5",
-            )}
+            className={messageRowClassName(mine, firstInGroup)}
           >
-            <div
-              className={cn(
-                "relative max-w-[73%] rounded-[18px] px-[13px] py-[7px] text-[15px] leading-[1.35] font-extralight tracking-[-0.005em] break-words whitespace-pre-wrap",
-                mine
-                  ? "text-white outgoing-bubble"
-                  : "bg-[var(--incoming)] text-[var(--incoming-text)]",
-              )}
-              style={
-                mine
-                  ? ({
-                      "--grad-top": gradient.top,
-                      "--grad-bottom": gradient.bottom,
-                      backgroundColor: "color-mix(in srgb, var(--grad-top) var(--percent-top, 0%), var(--grad-bottom))",
-                    } as React.CSSProperties)
-                  : undefined
-              }
-            >
-              {message.text}
-              {lastInGroup && (!isContactTyping || mine) && !suppressTail ? <BubbleTail mine={mine} /> : null}
-            </div>
+            <MessageBubble
+              message={message}
+              mine={mine}
+              gradient={gradient}
+              showTail={lastInGroup && (!isContactTyping || mine) && !suppressTail}
+            />
           </motion.div>
         );
       })}

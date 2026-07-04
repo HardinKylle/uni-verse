@@ -25,6 +25,9 @@
 *.pem
 *:Zone.Identifier
 
+# personal reference images dropped into public/ (e.g. Facebook CDN downloads)
+public/*_n.jpg
+
 # debug
 npm-debug.log*
 yarn-debug.log*

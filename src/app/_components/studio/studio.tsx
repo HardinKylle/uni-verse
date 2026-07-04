@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { PanelRight, PanelRightClose } from "lucide-react";
 
 import { EditorSidebar } from "./editor-sidebar";
+import { ExportButton } from "./export-panel";
 import { PhonePreview } from "./phone-preview";
 import { ScriptPanel } from "./script-panel";
 import { PropertiesPanel } from "./properties-panel";
@@ -37,6 +38,7 @@ const initialState: StudioState = {
   projectDescription: "A new story...",
   isRightPanelOpen: true,
   showKeyboard: false,
+  frameBreaks: [],
 };
 
 export function Studio() {
@@ -45,16 +47,17 @@ export function Studio() {
 
   return (
     <StudioContext.Provider value={contextValue}>
-      <main className="flex h-screen overflow-hidden bg-[#F7F3EF] text-foreground font-sans text-sm p-3 gap-3">
-        <div className="flex w-[820px] shrink-0 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
+      <main className="flex h-screen min-w-[1600px] overflow-hidden bg-[#F7F3EF] text-foreground font-sans text-sm p-3 gap-3">
+        <div className="flex w-[820px] shrink-0 overflow-hidden rounded-2xl border border-sand-200/70 bg-white">
           <EditorSidebar />
           <ScriptPanel />
         </div>
 
-        <div className="relative flex flex-1 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
+        <div className="relative flex flex-1 overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-black/5">
           <PhonePreview />
 
-          <div className="absolute top-4 right-4 z-10">
+          <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+            <ExportButton />
             <button
               onClick={() => setState(s => ({ ...s, isRightPanelOpen: !s.isRightPanelOpen }))}
               className="flex size-9 items-center justify-center rounded-lg bg-white/80 backdrop-blur text-sand-500 shadow-sm ring-1 ring-black/5 hover:text-sand-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
@@ -72,7 +75,7 @@ export function Studio() {
             opacity: state.isRightPanelOpen ? 1 : 0
           }}
           transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-          className="flex shrink-0 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5"
+          className="flex shrink-0 overflow-hidden rounded-2xl border border-sand-200/70 bg-white"
         >
           <div className="shrink-0 h-full" style={{ width: PANEL_WIDTH }}>
             <PropertiesPanel />
