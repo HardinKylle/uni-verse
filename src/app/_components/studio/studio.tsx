@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { PanelRight, PanelRightClose } from "lucide-react";
+import { LogOut, PanelRight, PanelRightClose } from "lucide-react";
 
 import { EditorSidebar } from "./editor-sidebar";
 import { ExportButton } from "./export-panel";
@@ -41,7 +41,7 @@ const initialState: StudioState = {
   frameBreaks: [],
 };
 
-export function Studio() {
+export function Studio({ authenticatedUser }: { authenticatedUser?: string }) {
   const [state, setState] = useState(initialState);
   const contextValue = useMemo(() => ({ state, setState }), [state]);
 
@@ -57,6 +57,20 @@ export function Studio() {
           <PhonePreview />
 
           <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+            {authenticatedUser ? (
+              <div className="flex h-9 items-center gap-2 rounded-lg bg-white/80 px-3 text-xs text-sand-600 shadow-sm ring-1 ring-black/5 backdrop-blur">
+                <span className="max-w-48 truncate">Signed in as {authenticatedUser}</span>
+                <form action="/auth/signout" method="post">
+                  <button
+                    type="submit"
+                    className="flex items-center gap-1 text-sand-500 transition-colors hover:text-accent-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                  >
+                    <LogOut className="size-3.5" />
+                    Sign out
+                  </button>
+                </form>
+              </div>
+            ) : null}
             <ExportButton />
             <button
               onClick={() => setState(s => ({ ...s, isRightPanelOpen: !s.isRightPanelOpen }))}
