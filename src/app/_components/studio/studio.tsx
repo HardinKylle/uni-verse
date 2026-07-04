@@ -11,38 +11,25 @@ import { ScriptPanel } from "./script-panel";
 import { PropertiesPanel } from "./properties-panel";
 import { StudioContext } from "./studio-context";
 import { PANEL_WIDTH } from "./constants";
+import { demoState } from "./demo-state";
+import { SaveIndicator } from "./save-indicator";
+import { useEpisodeAutosave } from "./use-episode-autosave";
 import type { StudioState } from "./types";
 
-const initialState: StudioState = {
-  dark: false,
-  characters: [
-    { id: "c1", name: "Jaz", color: "#ff7a7a" },
-    { id: "c2", name: "Kylle", color: "#5aa9e6" },
-  ],
-  ownerId: "c2",
-  activeSenderId: "c1",
-  messages: [
-    { id: "m1", senderId: "c1", text: "why r u dumb" },
-    { id: "m2", senderId: "c2", text: "i dont know" },
-  ],
-  editingCharacterId: null,
-  status: "Delivered",
-  day: "Today",
-  time: "9:41",
-  meridiem: "AM",
-  inbox: 12,
-  readTime: "10:01 PM",
-  bubbleColor: "blue",
-  draft: "",
-  projectName: "Untitled Episode",
-  projectDescription: "A new story...",
-  isRightPanelOpen: true,
-  showKeyboard: false,
-  frameBreaks: [],
+export type StudioInitialData = {
+  state: StudioState;
+  episode: { id: string; updatedAt: string };
 };
 
-export function Studio({ authenticatedUser }: { authenticatedUser?: string }) {
-  const [state, setState] = useState(initialState);
+export function Studio({
+  authenticatedUser,
+  initialData,
+}: {
+  authenticatedUser?: string;
+  initialData?: StudioInitialData;
+}) {
+  const [state, setState] = useState(initialData?.state ?? demoState);
+  const saveStatus = useEpisodeAutosave(state, initialData?.episode);
   const contextValue = useMemo(() => ({ state, setState }), [state]);
 
   return (
@@ -59,6 +46,7 @@ export function Studio({ authenticatedUser }: { authenticatedUser?: string }) {
           <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
             {authenticatedUser ? (
               <div className="flex h-9 items-center gap-2 rounded-lg bg-white/80 px-3 text-xs text-sand-600 shadow-sm ring-1 ring-black/5 backdrop-blur">
+                {initialData ? <SaveIndicator status={saveStatus} /> : null}
                 <span className="max-w-48 truncate">Signed in as {authenticatedUser}</span>
                 <form action="/auth/signout" method="post">
                   <button

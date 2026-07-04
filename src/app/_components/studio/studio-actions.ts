@@ -123,7 +123,7 @@ export function addCharacter(state: StudioState): StudioState {
   const color =
     CHARACTER_PALETTE.find((candidate) => !usedColors.has(candidate)) ??
     CHARACTER_PALETTE[state.characters.length % CHARACTER_PALETTE.length];
-  const id = newId("c");
+  const id = crypto.randomUUID();
 
   return {
     ...state,
