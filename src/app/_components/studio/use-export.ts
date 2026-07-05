@@ -9,6 +9,7 @@ import { measureContentHeight, prepareMessagesForExport, renderFrameToBlob } fro
 import { sliceIntoFrames } from "./export-slicing";
 import { computeGroupFlagsMap, getStatusText } from "./phone-preview";
 import type { StudioState } from "./types";
+import { exportFramesForUser } from "./anonymous-limits";
 
 const NATIVE_RATIO = EXPORT_ASPECT_RATIOS[0];
 
@@ -42,7 +43,12 @@ function frameNeedsDayTimeHeader(frameIndex: number, frameMessages: StudioState[
  * (typing in the script panel) change `state.messages`' identity on every
  * keystroke.
  */
-export function useExport(state: StudioState, aspectRatio: ExportAspectRatioId, includeBezel: boolean) {
+export function useExport(
+  state: StudioState,
+  aspectRatio: ExportAspectRatioId,
+  includeBezel: boolean,
+  isAuthenticated: boolean,
+) {
   const [isExporting, setIsExporting] = useState(false);
   // Both measurements touch `document`, so they're populated client-only via
   // effects (never during render) — this page is prerendered on the server,
@@ -131,6 +137,10 @@ export function useExport(state: StudioState, aspectRatio: ExportAspectRatioId, 
 
   // Computed from the full conversation, not any one frame's slice — see computeGroupFlagsMap's docstring.
   const groupFlags = useMemo(() => computeGroupFlagsMap(preparedMessages), [preparedMessages]);
+  const exportFrames = useMemo(
+    () => exportFramesForUser(frames, isAuthenticated),
+    [frames, isAuthenticated],
+  );
 
   /** A single frame downloads directly as a PNG; multiple frames get zipped so it's one download instead of N. */
   async function exportEpisode() {
@@ -159,9 +169,9 @@ export function useExport(state: StudioState, aspectRatio: ExportAspectRatioId, 
       }
 
       const zip = new JSZip();
-      const pad = String(frames.length).length;
+      const pad = String(exportFrames.length).length;
 
-      for (const [index, frameMessages] of frames.entries()) {
+      for (const [index, frameMessages] of exportFrames.entries()) {
         const isLastFrame = index === frames.length - 1;
         const blob = await renderFrameToBlob(
           state,
@@ -183,5 +193,5 @@ export function useExport(state: StudioState, aspectRatio: ExportAspectRatioId, 
     }
   }
 
-  return { frames, isExporting, isPreparing: !isReady, exportEpisode };
+  return { frames, exportFrameCount: exportFrames.length, isExporting, isPreparing: !isReady, exportEpisode };
 }

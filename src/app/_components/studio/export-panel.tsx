@@ -11,7 +11,7 @@ import { useStudio } from "./studio-context";
 import { useExport } from "./use-export";
 
 export function ExportButton() {
-  const { state } = useStudio();
+  const { state, isAuthenticated } = useStudio();
   const [isOpen, setIsOpen] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<ExportAspectRatioId>(EXPORT_ASPECT_RATIOS[0].id);
   const [includeBezel, setIncludeBezel] = useState(false);
@@ -20,7 +20,12 @@ export function ExportButton() {
   const forceNativeShape = includeBezel || state.showKeyboard;
   const effectiveAspectRatio = forceNativeShape ? EXPORT_ASPECT_RATIOS[0].id : aspectRatio;
 
-  const { frames, isExporting, isPreparing, exportEpisode } = useExport(state, aspectRatio, includeBezel);
+  const { frames, exportFrameCount, isExporting, isPreparing, exportEpisode } = useExport(
+    state,
+    aspectRatio,
+    includeBezel,
+    isAuthenticated,
+  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -79,7 +84,7 @@ export function ExportButton() {
                   key={ratio.id}
                   type="button"
                   aria-pressed={effectiveAspectRatio === ratio.id}
-                  disabled={forceNativeShape}
+                  disabled={forceNativeShape || (!isAuthenticated && ratio.id !== EXPORT_ASPECT_RATIOS[0].id)}
                   onClick={() => setAspectRatio(ratio.id)}
                   className={cn(
                     "rounded-lg border px-2 py-1.5 text-[11.5px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40",
@@ -94,6 +99,12 @@ export function ExportButton() {
               ))}
             </div>
 
+            {!isAuthenticated ? (
+              <p className="-mt-2 mb-4 text-[11px] text-sand-500">
+                Sign in to unlock all frame shapes.
+              </p>
+            ) : null}
+
             <div className="mb-4">
               <p className={miniLabel}>Frame style</p>
               <SegmentedControl<"screen" | "device">
@@ -104,6 +115,7 @@ export function ExportButton() {
                   { value: "device", label: "Full device" },
                 ]}
                 onChange={(value) => setIncludeBezel(value === "device")}
+                disabled={!isAuthenticated}
               />
             </div>
 
@@ -111,6 +123,12 @@ export function ExportButton() {
               <span className="text-[12px] font-medium text-sand-600">Frames</span>
               <span className="font-mono text-[12px] font-semibold text-sand-900">{frames.length}</span>
             </div>
+
+            {!isAuthenticated && frames.length > exportFrameCount ? (
+              <p role="status" className="mb-4 rounded-lg bg-accent-100/60 px-3 py-2 text-[11.5px] text-accent-900">
+                Only the first {exportFrameCount} of {frames.length} frames will be exported. Sign in to export them all.
+              </p>
+            ) : null}
 
             <button
               type="button"
@@ -130,7 +148,7 @@ export function ExportButton() {
                     ? "Nothing to export"
                   : frames.length === 1
                     ? "Export as PNG"
-                    : `Export ${frames.length} PNGs as ZIP`}
+                    : `Export ${exportFrameCount} PNGs as ZIP`}
             </button>
           </motion.div>
         )}
