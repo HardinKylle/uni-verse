@@ -6,6 +6,7 @@ import { Upload, Plus, Trash2, Edit2, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+import { canAddCharacter } from "./anonymous-limits";
 import { useStudio } from "./studio-context";
 import { CHARACTER_PALETTE } from "./constants";
 import { addCharacter, deleteCharacter, toggleEditingCharacter, updateCharacter } from "./studio-actions";
@@ -44,8 +45,9 @@ function ProjectInfo() {
 }
 
 function CastSection() {
-  const { state, setState } = useStudio();
+  const { state, setState, isAuthenticated } = useStudio();
   const idPrefix = useId();
+  const castIsFull = !canAddCharacter(state.characters.length, isAuthenticated);
 
   function uploadPhoto(id: string, event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -175,9 +177,12 @@ function CastSection() {
           );
         })}
       </ul>
-      <button type="button" className={cn("mt-3 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-dashed border-sand-300 bg-transparent px-3 py-2.5 text-[12px] font-semibold text-sand-500 transition-colors hover:border-accent-400 hover:bg-accent-100/50 hover:text-accent-700 active:scale-[0.98]", focusRing)} onClick={() => setState((current) => addCharacter(current))}>
+      <button type="button" disabled={castIsFull} className={cn("mt-3 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-dashed border-sand-300 bg-transparent px-3 py-2.5 text-[12px] font-semibold text-sand-500 transition-colors hover:border-accent-400 hover:bg-accent-100/50 hover:text-accent-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-sand-300 disabled:hover:bg-transparent disabled:hover:text-sand-500", focusRing)} onClick={() => setState((current) => addCharacter(current))}>
         <Plus className="size-3.5" /> Add character
       </button>
+      {castIsFull ? (
+        <p className="mt-2 text-center text-[11px] text-sand-500">Sign in to add more characters.</p>
+      ) : null}
     </Panel>
   );
 }

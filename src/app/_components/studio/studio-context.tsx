@@ -12,6 +12,7 @@ import type { StudioState } from "./types";
 type StudioContextValue = {
   state: StudioState;
   setState: Dispatch<SetStateAction<StudioState>>;
+  isAuthenticated: boolean;
 };
 
 export const StudioContext = createContext<StudioContextValue | null>(null);

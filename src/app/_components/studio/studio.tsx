@@ -30,7 +30,11 @@ export function Studio({
 }) {
   const [state, setState] = useState(initialData?.state ?? demoState);
   const saveStatus = useEpisodeAutosave(state, initialData?.episode);
-  const contextValue = useMemo(() => ({ state, setState }), [state]);
+  const isAuthenticated = Boolean(authenticatedUser);
+  const contextValue = useMemo(() => ({ state, setState, isAuthenticated }), [state, isAuthenticated]);
+  // Every studio action replaces these arrays, so identity against the seed
+  // distinguishes real content edits from panel toggles and screen settings.
+  const hasDemoEdits = state.messages !== demoState.messages || state.characters !== demoState.characters;
 
   return (
     <StudioContext.Provider value={contextValue}>
@@ -58,7 +62,21 @@ export function Studio({
                   </button>
                 </form>
               </div>
-            ) : null}
+            ) : (
+              <div className="relative">
+                <a
+                  href="/login"
+                  className="flex h-9 items-center rounded-lg bg-accent-500 px-3 text-[12.5px] font-semibold text-white shadow-sm transition-colors hover:bg-accent-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                >
+                  Sign in
+                </a>
+                {hasDemoEdits ? (
+                  <p className="absolute top-[calc(100%+4px)] right-0 whitespace-nowrap rounded-md bg-white/80 px-2 py-0.5 text-[11px] text-sand-500 shadow-sm ring-1 ring-black/5 backdrop-blur">
+                    Demo edits won&apos;t be carried over
+                  </p>
+                ) : null}
+              </div>
+            )}
             <ExportButton />
             <button
               onClick={() => setState(s => ({ ...s, isRightPanelOpen: !s.isRightPanelOpen }))}

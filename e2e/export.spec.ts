@@ -1,6 +1,7 @@
-import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import JSZip from "jszip";
+
+import { expect, test } from "./fixtures";
 
 // The studio's three panels are fixed/near-fixed width (820px + 340px + gaps),
 // so the default 1280px test viewport leaves almost no room for the center
@@ -113,7 +114,7 @@ test("a conversation split across frames downloads a zip of numbered PNGs", asyn
   expect(download.suggestedFilename()).toMatch(/\.zip$/);
 });
 
-test("long conversations export complete visual sequences at multiple aspect ratios", async ({ page }) => {
+test("signed-in long conversations export complete visual sequences at multiple aspect ratios", async ({ authenticatedPage: page }) => {
   test.setTimeout(120_000);
   await page.goto("/");
 
@@ -154,7 +155,7 @@ test("long conversations export complete visual sequences at multiple aspect rat
   }
 });
 
-test("an extremely long bubble remains visible in square exports", async ({ page }) => {
+test("a signed-in extremely long bubble remains visible in square exports", async ({ authenticatedPage: page }) => {
   test.setTimeout(60_000);
   await page.goto("/");
 
@@ -180,7 +181,7 @@ test("an extremely long bubble remains visible in square exports", async ({ page
   }
 });
 
-test("mixed messages retain timestamps, manual breaks, themes, and read status", async ({ page }) => {
+test("signed-in mixed messages retain timestamps, manual breaks, themes, and read status", async ({ authenticatedPage: page }) => {
   test.setTimeout(90_000);
   await page.goto("/");
 

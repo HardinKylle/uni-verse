@@ -3,8 +3,51 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import { Studio } from "./studio";
+import { demoState } from "./demo-state";
 
 describe("Studio", () => {
+  it("shows the sign-in CTA only to anonymous writers", () => {
+    const { rerender } = render(<Studio />);
+
+    expect(screen.getByRole("link", { name: "Sign in" })).toBeInTheDocument();
+
+    rerender(<Studio authenticatedUser="writer@example.com" initialData={{
+      state: {
+        ...demoState,
+        characters: demoState.characters.map((character) => ({ ...character })),
+        messages: demoState.messages.map((message) => ({ ...message })),
+      },
+      episode: { id: "episode-1", updatedAt: "2026-07-06T00:00:00.000Z" },
+    }} />);
+
+    expect(screen.queryByRole("link", { name: "Sign in" })).not.toBeInTheDocument();
+  });
+
+  it("warns that demo edits are not carried over only once the demo is edited", async () => {
+    const user = userEvent.setup();
+    render(<Studio />);
+
+    expect(screen.queryByText(/won't be carried over/)).not.toBeInTheDocument();
+
+    const composer = screen.getByRole("textbox", { name: /new message/i });
+    await user.type(composer, "an edit{Enter}");
+
+    expect(screen.getByText(/won't be carried over/)).toBeInTheDocument();
+  });
+
+  it("caps the anonymous cast at three characters with a sign-in nudge", async () => {
+    const user = userEvent.setup();
+    render(<Studio />);
+
+    const addCharacter = screen.getByRole("button", { name: "Add character" });
+    expect(addCharacter).toBeEnabled();
+
+    await user.click(addCharacter);
+
+    expect(addCharacter).toBeDisabled();
+    expect(screen.getByText("Sign in to add more characters.")).toBeInTheDocument();
+  });
+
   it("keeps character edits synchronized with the phone preview", async () => {
     const user = userEvent.setup();
     render(<Studio />);
