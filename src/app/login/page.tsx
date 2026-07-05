@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 import { LoginForm } from "./login-form";
+import { getCurrentUser } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Sign in · AU Studio" };
 
@@ -9,6 +11,9 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ error?: string | string[] }>;
 }) {
+  const user = await getCurrentUser();
+  if (user) redirect("/");
+
   const params = await searchParams;
   const error = typeof params.error === "string" ? params.error : undefined;
 
