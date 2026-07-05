@@ -1,12 +1,21 @@
 import { expect, test } from "@playwright/test";
 
-test("login page offers email and Google sign-in", async ({ page }) => {
+test("login page offers email + password and Google sign-in", async ({ page }) => {
   await page.goto("/login");
 
   await expect(page.getByRole("heading", { name: "Keep your story close." })).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Email address" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Email me a magic link" })).toBeVisible();
+  await expect(page.getByLabel("Password")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
+});
+
+test("login page toggles between sign-in and sign-up", async ({ page }) => {
+  await page.goto("/login");
+
+  await page.getByRole("button", { name: "New here? Create an account" }).click();
+  await expect(page.getByRole("button", { name: "Create account" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Already have an account? Sign in" })).toBeVisible();
 });
 
 test("auth callback failures return to login with an error", async ({ page }) => {
