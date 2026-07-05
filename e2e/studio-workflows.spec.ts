@@ -27,10 +27,10 @@ test("message and timestamp controls preserve timeline state", async ({ page }) 
   const timeline = page.getByRole("region", { name: "Chat Script Timeline" });
 
   await timeline.getByRole("button", { name: "Duplicate message" }).first().click();
-  await expect(timeline.getByRole("textbox", { name: "Message from Jaz" })).toHaveCount(2);
+  await expect(timeline.getByRole("textbox", { name: "Message from Jaz" })).toHaveCount(3);
 
   await timeline.getByRole("button", { name: "Switch sender" }).first().click();
-  await expect(timeline.getByRole("textbox", { name: "Message from Kylle" })).toHaveCount(2);
+  await expect(timeline.getByRole("textbox", { name: "Message from Kylle" })).toHaveCount(3);
 
   await timeline.getByRole("button", { name: "Add timestamp" }).click();
   const timestamp = timeline.getByRole("textbox", { name: "Timestamp text" });
