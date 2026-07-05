@@ -93,7 +93,7 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
   return (
     <div className="w-full max-w-md rounded-2xl border border-sand-200/70 bg-white p-8 shadow-xl shadow-sand-900/5">
       <div className="mb-8">
-        <p className={cn(miniLabel, "text-accent-600")}>AU Studio</p>
+        <p className={cn(miniLabel, "text-accent-600")}>Kathalis</p>
         <h1 className="font-display text-4xl text-sand-900">Keep your story close.</h1>
         <p className="mt-3 text-sm leading-6 text-sand-500">
           Sign in to save your episodes and continue writing across devices.

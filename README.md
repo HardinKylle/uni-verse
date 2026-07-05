@@ -2,7 +2,7 @@
 
 A studio for AU (Alternate Universe) fic writers: write a fake conversation once as a script, render it
 into a pixel-faithful social-media UI skin, and batch-export the sequential screenshots that make up a
-story episode. Working title: **Scriptshot**.
+story episode. Working title: **Kathalis**.
 
 ## Overview
 

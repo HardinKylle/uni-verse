@@ -6,6 +6,16 @@ import { Studio } from "./studio";
 import { demoState } from "./demo-state";
 
 describe("Studio", () => {
+  it("renders the header bar with the wordmark, auth CTA, export, and properties toggle", () => {
+    render(<Studio />);
+
+    const header = screen.getByRole("banner");
+    expect(within(header).getByRole("link", { name: "Kathalis." })).toHaveAttribute("href", "/");
+    expect(within(header).getByRole("link", { name: "Sign in" })).toBeInTheDocument();
+    expect(within(header).getByRole("button", { name: "Export" })).toBeInTheDocument();
+    expect(within(header).getByRole("button", { name: "Close properties" })).toBeInTheDocument();
+  });
+
   it("shows the sign-in CTA only to anonymous writers", () => {
     const { rerender } = render(<Studio />);
 
