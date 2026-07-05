@@ -28,7 +28,7 @@ function SenderSection() {
     setState((current) => ({ ...current, [key]: value }));
 
   return (
-    <Panel title="Roles" className="relative z-50">
+    <Panel title="Roles" className="relative z-30">
       <div className="mb-4 relative z-20">
         <p className={miniLabel}>Sending as</p>
         <CustomSelect

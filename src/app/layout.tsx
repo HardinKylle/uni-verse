@@ -19,7 +19,7 @@ const newsreader = Newsreader({
 });
 
 export const metadata: Metadata = {
-  title: "AU Studio",
+  title: "Kathalis",
   description: "Create and export fictional message conversations.",
 };
 

@@ -58,7 +58,7 @@ export function ExportButton() {
         aria-expanded={isOpen}
         aria-haspopup="dialog"
         className={cn(
-          "flex h-9 items-center gap-1.5 rounded-lg bg-white/80 backdrop-blur px-3 text-[12.5px] font-medium text-sand-500 shadow-sm ring-1 ring-black/5 transition-colors hover:text-sand-900",
+          "flex h-9 items-center gap-1.5 rounded-lg bg-accent-500 px-3 text-[12.5px] font-semibold text-white shadow-sm transition-colors hover:bg-accent-600",
           focusRing,
         )}
       >

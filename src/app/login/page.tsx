@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { LoginForm } from "./login-form";
 import { getCurrentUser } from "@/lib/supabase/server";
 
-export const metadata: Metadata = { title: "Sign in · AU Studio" };
+export const metadata: Metadata = { title: "Sign in · Kathalis" };
 
 export default async function LoginPage({
   searchParams,
