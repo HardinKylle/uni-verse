@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 test("login page offers email + password and Google sign-in", async ({ page }) => {
   await page.goto("/login");
@@ -23,4 +23,10 @@ test("auth callback failures return to login with an error", async ({ page }) =>
 
   await expect(page).toHaveURL(/\/login\?error=/);
   await expect(page.getByText("We could not complete sign-in. Please request a new link.")).toBeVisible();
+});
+
+test("visiting /login while signed in redirects to the workspace", async ({ authenticatedPage }) => {
+  await authenticatedPage.goto("/login");
+
+  await expect(authenticatedPage).toHaveURL("/");
 });
