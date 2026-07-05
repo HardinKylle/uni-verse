@@ -3,13 +3,16 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 
+import { confirmPasswordError, passwordError } from "./validate-credentials";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { focusRing, miniLabel, standardInput } from "../_components/studio/shared-ui";
 
 type FormStatus = { kind: "error" | "success"; message: string } | null;
+type Mode = "signin" | "signup";
 
 export function LoginForm({ callbackError }: { callbackError?: string }) {
+  const [mode, setMode] = useState<Mode>("signin");
   const [status, setStatus] = useState<FormStatus>(
     callbackError ? { kind: "error", message: callbackError } : null,
   );
@@ -17,22 +20,55 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
 
   const callbackUrl = () => `${window.location.origin}/auth/callback`;
 
-  async function sendMagicLink(event: FormEvent<HTMLFormElement>) {
+  async function submitPassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsSubmitting(true);
-    setStatus(null);
 
     const form = new FormData(event.currentTarget);
     const email = String(form.get("email") ?? "");
-    const { error } = await getSupabaseBrowserClient().auth.signInWithOtp({
+    const password = String(form.get("password") ?? "");
+
+    if (mode === "signup") {
+      const confirmPassword = String(form.get("confirmPassword") ?? "");
+      const message = passwordError(password) ?? confirmPasswordError(password, confirmPassword);
+      if (message) {
+        setStatus({ kind: "error", message });
+        return;
+      }
+    }
+
+    setIsSubmitting(true);
+    setStatus(null);
+
+    if (mode === "signin") {
+      const { error } = await getSupabaseBrowserClient().auth.signInWithPassword({ email, password });
+      if (error) {
+        setIsSubmitting(false);
+        setStatus({ kind: "error", message: error.message });
+        return;
+      }
+      window.location.assign("/");
+      return;
+    }
+
+    const { data, error } = await getSupabaseBrowserClient().auth.signUp({
       email,
+      password,
       options: { emailRedirectTo: callbackUrl() },
     });
 
+    if (error) {
+      setIsSubmitting(false);
+      setStatus({ kind: "error", message: error.message });
+      return;
+    }
+
+    if (data.session) {
+      window.location.assign("/");
+      return;
+    }
+
     setIsSubmitting(false);
-    setStatus(error
-      ? { kind: "error", message: error.message }
-      : { kind: "success", message: "Check your email for the sign-in link." });
+    setStatus({ kind: "success", message: "Check your email to confirm your account." });
   }
 
   async function signInWithGoogle() {
@@ -49,6 +85,11 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
     }
   }
 
+  function toggleMode() {
+    setStatus(null);
+    setMode((current) => (current === "signin" ? "signup" : "signin"));
+  }
+
   return (
     <div className="w-full max-w-md rounded-2xl border border-sand-200/70 bg-white p-8 shadow-xl shadow-sand-900/5">
       <div className="mb-8">
@@ -59,7 +100,21 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
         </p>
       </div>
 
-      <form onSubmit={sendMagicLink} className="space-y-4">
+      {status ? (
+        <p
+          role={status.kind === "error" ? "alert" : "status"}
+          className={cn(
+            "mb-4 rounded-lg px-3 py-2.5 text-sm",
+            status.kind === "error"
+              ? "bg-accent-100 text-accent-800"
+              : "bg-sand-100 text-sand-700",
+          )}
+        >
+          {status.message}
+        </p>
+      ) : null}
+
+      <form onSubmit={submitPassword} className="space-y-4">
         <label className="block">
           <span className={miniLabel}>Email address</span>
           <input
@@ -71,6 +126,37 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
             className={cn(standardInput, "border-sand-200 bg-sand-50 px-3 py-2.5 hover:bg-sand-50")}
           />
         </label>
+        <div>
+          <label className="block">
+            <span className={miniLabel}>Password</span>
+            <input
+              name="password"
+              type="password"
+              autoComplete={mode === "signin" ? "current-password" : "new-password"}
+              required
+              placeholder="••••••••"
+              className={cn(standardInput, "border-sand-200 bg-sand-50 px-3 py-2.5 hover:bg-sand-50")}
+            />
+          </label>
+          {mode === "signup" ? (
+            <span className="mt-1.5 block text-xs text-sand-400">
+              At least 8 characters, with an uppercase letter, a lowercase letter, and a number.
+            </span>
+          ) : null}
+        </div>
+        {mode === "signup" ? (
+          <label className="block">
+            <span className={miniLabel}>Confirm password</span>
+            <input
+              name="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              required
+              placeholder="••••••••"
+              className={cn(standardInput, "border-sand-200 bg-sand-50 px-3 py-2.5 hover:bg-sand-50")}
+            />
+          </label>
+        ) : null}
         <button
           type="submit"
           disabled={isSubmitting}
@@ -79,9 +165,19 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
             focusRing,
           )}
         >
-          {isSubmitting ? "Sending…" : "Email me a magic link"}
+          {isSubmitting
+            ? mode === "signin" ? "Signing in…" : "Creating account…"
+            : mode === "signin" ? "Sign in" : "Create account"}
         </button>
       </form>
+
+      <button
+        type="button"
+        onClick={toggleMode}
+        className={cn("mt-4 block w-full text-center text-xs text-sand-500 hover:text-sand-800", focusRing)}
+      >
+        {mode === "signin" ? "New here? Create an account" : "Already have an account? Sign in"}
+      </button>
 
       <div className="my-6 flex items-center gap-3 text-[10px] font-medium uppercase tracking-widest text-sand-400">
         <span className="h-px flex-1 bg-sand-200" />
@@ -101,20 +197,6 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
         <span aria-hidden="true" className="font-bold text-[#4285f4]">G</span>
         Continue with Google
       </button>
-
-      {status ? (
-        <p
-          role={status.kind === "error" ? "alert" : "status"}
-          className={cn(
-            "mt-5 rounded-lg px-3 py-2.5 text-sm",
-            status.kind === "error"
-              ? "bg-accent-100 text-accent-800"
-              : "bg-sand-100 text-sand-700",
-          )}
-        >
-          {status.message}
-        </p>
-      ) : null}
 
       <Link href="/" className={cn("mt-6 block text-center text-xs text-sand-500 hover:text-sand-800", focusRing)}>
         Continue without signing in
