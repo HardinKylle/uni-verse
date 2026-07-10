@@ -5,9 +5,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Download, Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { EXPORT_ASPECT_RATIOS, type ExportAspectRatioId } from "./constants";
-import { focusRing, miniLabel, SegmentedControl } from "./shared-ui";
-import { useStudio } from "./studio-context";
+import { EXPORT_ASPECT_RATIOS, type ExportAspectRatioId } from "../constants";
+import { focusRing, miniLabel, SegmentedControl } from "../ui/shared-ui";
+import { useStudio } from "../studio-context";
 import { useExport } from "./use-export";
 
 export function ExportButton() {

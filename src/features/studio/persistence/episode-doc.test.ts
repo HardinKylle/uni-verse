@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { deserializeEpisode, serializeEpisode } from "./episode-doc";
-import type { Character, StudioState } from "./types";
+import type { Character, StudioState } from "../types";
 
 const characters: Character[] = [
   { id: "11111111-1111-4111-8111-111111111111", name: "Jaz", color: "#ff7a7a" },

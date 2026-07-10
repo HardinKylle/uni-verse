@@ -1,6 +1,6 @@
 "use client";
 
-import { useStudio } from "./studio-context";
+import { useStudio } from "../studio-context";
 import {
   Panel,
   SegmentedControl,
@@ -9,8 +9,8 @@ import {
   LabeledInput,
   standardInput,
   miniLabel,
-} from "./shared-ui";
-import type { BubbleColor, DeliveryStatus, Meridiem } from "./types";
+} from "../ui/shared-ui";
+import type { BubbleColor, DeliveryStatus, Meridiem } from "../types";
 
 export function PropertiesPanel() {
   return (

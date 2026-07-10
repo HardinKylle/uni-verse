@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { sliceIntoFrames } from "./export-slicing";
-import type { Message } from "./types";
+import type { Message } from "../types";
 
 function makeMessages(count: number): Message[] {
   return Array.from({ length: count }, (_, i) => ({

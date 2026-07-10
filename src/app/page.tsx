@@ -1,6 +1,6 @@
-import { ClaimUsernameForm } from "./login/claim-username-form";
-import { Studio } from "./_components/studio/studio";
-import { loadOrCreateWorkspace } from "./_components/studio/workspace";
+import { ClaimUsernameForm } from "@/features/account/claim-username-form";
+import { Studio } from "@/features/studio/studio";
+import { loadOrCreateWorkspace } from "@/features/studio/persistence/workspace";
 import { createSupabaseServerClient, getCurrentUser } from "@/lib/supabase/server";
 
 export default async function Home() {

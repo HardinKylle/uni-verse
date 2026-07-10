@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Json } from "@/lib/supabase/database.types";
 import { serializeEpisode } from "./episode-doc";
-import type { StudioState } from "./types";
+import type { StudioState } from "../types";
 
 export type SaveStatus = "saved" | "saving" | "retrying" | "conflict";
 

@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 
 import { isUsernameTaken, signInWithUsername } from "./actions";
 import { confirmPasswordError, passwordError } from "./validate-credentials";
 import { normalizeUsername, usernameError } from "./validate-username";
+import { focusRing, miniLabel, standardInput } from "@/components/ui/form-styles";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { focusRing, miniLabel, standardInput } from "../_components/studio/shared-ui";
 
 type FormStatus = { kind: "error" | "success"; message: string } | null;
 type Mode = "signin" | "signup";
@@ -18,7 +18,14 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
   const [status, setStatus] = useState<FormStatus>(
     callbackError ? { kind: "error", message: callbackError } : null,
   );
+  const [isHydrated, setIsHydrated] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isBusy = !isHydrated || isSubmitting;
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsHydrated(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   const callbackUrl = () => `${window.location.origin}/auth/callback`;
 
@@ -212,7 +219,7 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
         ) : null}
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isBusy}
           className={cn(
             "w-full rounded-lg bg-accent-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-600 disabled:cursor-wait disabled:opacity-60",
             focusRing,
@@ -240,7 +247,7 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
 
       <button
         type="button"
-        disabled={isSubmitting}
+        disabled={isBusy}
         onClick={signInWithGoogle}
         className={cn(
           "flex w-full items-center justify-center gap-3 rounded-lg border border-sand-200 bg-white px-4 py-2.5 text-sm font-medium text-sand-700 transition-colors hover:bg-sand-50 disabled:cursor-wait disabled:opacity-60",

@@ -4,7 +4,7 @@
 
 alter table public.profiles add column username text;
 
--- Format and reserved names mirror src/app/login/validate-username.ts —
+-- Format and reserved names mirror src/features/account/validate-username.ts —
 -- keep both in sync.
 alter table public.profiles add constraint profiles_username_valid check (
   username is null

@@ -6,7 +6,7 @@ import {
   getOwnerAndContact,
   getStatusText,
 } from "./phone-preview";
-import type { Message } from "./types";
+import type { Message } from "../types";
 
 const messages: Message[] = [
   { id: "m1", senderId: "c1", text: "one" },

@@ -2,17 +2,17 @@ import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { domToBlob } from "modern-screenshot";
 
-import { EXPORT_SCALE, PHONE_SCREEN_WIDTH } from "./constants";
+import { EXPORT_SCALE, PHONE_SCREEN_WIDTH } from "../constants";
 import {
   MessageBubble,
   TimestampDivider,
   computeGroupFlagsMap,
   messageRowClassName,
   timestampRowClassName,
-} from "./phone-preview";
-import { PhoneScreen } from "./phone-screen";
-import { updateOutgoingBubbleGradient } from "./use-outgoing-bubble-gradient";
-import type { Message, StudioState } from "./types";
+} from "../phone/phone-preview";
+import { PhoneScreen } from "../phone/phone-screen";
+import { updateOutgoingBubbleGradient } from "../phone/use-outgoing-bubble-gradient";
+import type { Message, StudioState } from "../types";
 
 /**
  * All measurement/rasterization here mounts a real (but off-screen) DOM

@@ -6,11 +6,11 @@ import { Upload, Plus, Trash2, Edit2, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-import { canAddCharacter } from "./anonymous-limits";
-import { useStudio } from "./studio-context";
-import { CHARACTER_PALETTE } from "./constants";
+import { canAddCharacter } from "../limits/anonymous-limits";
+import { useStudio } from "../studio-context";
+import { CHARACTER_PALETTE } from "../constants";
 import { addCharacter, deleteCharacter, toggleEditingCharacter, updateCharacter } from "./studio-actions";
-import { Panel, Avatar, standardInput, focusRing, miniLabel } from "./shared-ui";
+import { Panel, Avatar, standardInput, focusRing, miniLabel } from "../ui/shared-ui";
 
 export function EditorSidebar() {
   return (

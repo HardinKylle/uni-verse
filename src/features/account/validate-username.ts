@@ -1,4 +1,4 @@
-// Mirrors the check constraint in supabase/migrations/20260706000001_username.sql —
+// Mirrors the check constraint in supabase/migrations/20260706000001_username.sql -
 // keep both in sync.
 export const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/;
 

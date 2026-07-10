@@ -5,11 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { cn } from "@/lib/utils";
 
-import { Avatar, focusRingOutline } from "./shared-ui";
-import { useStudio } from "./studio-context";
+import { Avatar, focusRingOutline } from "../ui/shared-ui";
+import { useStudio } from "../studio-context";
 import { useOutgoingBubbleGradient } from "./use-outgoing-bubble-gradient";
-import { BUBBLE_GRADIENTS, KEYBOARD_HEIGHT_CLOSED, KEYBOARD_HEIGHT_OPEN, STATUS_DELAY_MS, SPRING_SNAPPY, SPRING_SOFT } from "./constants";
-import type { Character, Message, StudioState } from "./types";
+import { BUBBLE_GRADIENTS, KEYBOARD_HEIGHT_CLOSED, KEYBOARD_HEIGHT_OPEN, STATUS_DELAY_MS, SPRING_SNAPPY, SPRING_SOFT } from "../constants";
+import type { Character, Message, StudioState } from "../types";
 
 export const lightTheme = "[--screen-bg:#fff] [--header-bg:rgba(248,248,248,0.86)] [--header-text:#000] [--subtle:#8e8e93] [--incoming:#e9e9eb] [--incoming-text:#000] [--outgoing:#0b93f6] [--divider:rgba(60,60,67,0.16)] [--field:#fff] [--field-border:#d9d9de] [--home:#000] [--plus-bg:#eaeaea] [--kb-bg:#d1d3d9] [--key-bg:#fff] [--key-text:#000] [--key-shadow:rgba(0,0,0,0.3)] [--special-key:#b4b8c1]";
 export const darkTheme = "[--screen-bg:#000] [--header-bg:rgba(24,24,26,0.82)] [--header-text:#fff] [--subtle:#98989f] [--incoming:#262629] [--incoming-text:#fff] [--outgoing:#0a84ff] [--divider:rgba(120,120,128,0.34)] [--field:#1c1c1e] [--field-border:#2e2e31] [--home:#fff] [--plus-bg:#1c1c1e] [--kb-bg:#161618] [--key-bg:#3b3b3d] [--key-text:#fff] [--key-shadow:rgba(0,0,0,1)] [--special-key:#2c2c2e]";
