@@ -4,12 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import JSZip from "jszip";
 
 import { downloadBlob } from "@/lib/utils";
-import { EXPORT_ASPECT_RATIOS, PHONE_SCREEN_WIDTH, type ExportAspectRatioId } from "./constants";
+import { EXPORT_ASPECT_RATIOS, PHONE_SCREEN_WIDTH, type ExportAspectRatioId } from "../constants";
 import { measureContentHeight, prepareMessagesForExport, renderFrameToBlob } from "./export-measure";
 import { sliceIntoFrames } from "./export-slicing";
-import { computeGroupFlagsMap, getStatusText } from "./phone-preview";
-import type { StudioState } from "./types";
-import { exportFramesForUser } from "./anonymous-limits";
+import { computeGroupFlagsMap, getStatusText } from "../phone/phone-preview";
+import type { StudioState } from "../types";
+import { exportFramesForUser } from "../limits/anonymous-limits";
 
 const NATIVE_RATIO = EXPORT_ASPECT_RATIOS[0];
 

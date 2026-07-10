@@ -118,7 +118,7 @@ create trigger characters_set_updated_at
 -- ---------------------------------------------------------------------------
 -- episodes: one conversation. The script column is the serialized EpisodeDoc
 -- (messages, frameBreaks, ownerId, activeSenderId, skin settings) — see
--- src/app/_components/studio/episode-doc.ts.
+-- src/features/studio/persistence/episode-doc.ts.
 -- ---------------------------------------------------------------------------
 create table public.episodes (
   id uuid primary key default gen_random_uuid(),

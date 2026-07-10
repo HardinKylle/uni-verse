@@ -1,15 +1,21 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 import { claimUsername } from "./actions";
 import { normalizeUsername, usernameError } from "./validate-username";
+import { focusRing, miniLabel, standardInput } from "@/components/ui/form-styles";
 import { cn } from "@/lib/utils";
-import { focusRing, miniLabel, standardInput } from "../_components/studio/shared-ui";
 
 export function ClaimUsernameForm() {
   const [error, setError] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsHydrated(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -70,7 +76,7 @@ export function ClaimUsernameForm() {
         </span>
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={!isHydrated || isSubmitting}
           className={cn(
             "w-full rounded-lg bg-accent-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-600 disabled:cursor-wait disabled:opacity-60",
             focusRing,

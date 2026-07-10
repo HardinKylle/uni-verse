@@ -1,4 +1,4 @@
-import type { Message } from "./types";
+import type { Message } from "../types";
 
 /**
  * Greedily packs messages into export frames: starts a new frame whenever

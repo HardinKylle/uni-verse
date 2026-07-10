@@ -5,22 +5,17 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { LogOut, PanelRight, PanelRightClose } from "lucide-react";
 
-import { EditorSidebar } from "./editor-sidebar";
-import { ExportButton } from "./export-panel";
-import { PhonePreview } from "./phone-preview";
-import { ScriptPanel } from "./script-panel";
-import { PropertiesPanel } from "./properties-panel";
+import { EditorSidebar } from "./editor/editor-sidebar";
+import { ExportButton } from "./export/export-panel";
+import { PhonePreview } from "./phone/phone-preview";
+import { ScriptPanel } from "./editor/script-panel";
+import { PropertiesPanel } from "./editor/properties-panel";
 import { StudioContext } from "./studio-context";
 import { PANEL_WIDTH } from "./constants";
 import { demoState } from "./demo-state";
-import { SaveIndicator } from "./save-indicator";
-import { useEpisodeAutosave } from "./use-episode-autosave";
-import type { StudioState } from "./types";
-
-export type StudioInitialData = {
-  state: StudioState;
-  episode: { id: string; updatedAt: string };
-};
+import { SaveIndicator } from "./ui/save-indicator";
+import { useEpisodeAutosave } from "./persistence/use-episode-autosave";
+import type { StudioInitialData } from "./types";
 
 export function Studio({
   authenticatedUser,

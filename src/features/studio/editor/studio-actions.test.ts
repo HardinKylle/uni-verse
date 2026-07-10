@@ -15,7 +15,7 @@ import {
   updateCharacter,
   updateMessageText,
 } from "./studio-actions";
-import type { StudioState } from "./types";
+import type { StudioState } from "../types";
 
 function makeState(overrides: Partial<StudioState> = {}): StudioState {
   return {

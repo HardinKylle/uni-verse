@@ -21,10 +21,10 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 import { cn } from "@/lib/utils";
-import { useStudio } from "./studio-context";
-import { focusRing, panelTitle } from "./shared-ui";
+import { useStudio } from "../studio-context";
+import { focusRing, panelTitle } from "../ui/shared-ui";
 import { addMessage, addTimestamp, cycleMessageSender, deleteMessage, duplicateMessage, reorderMessages, selectMentionSender, toggleFrameBreak, updateMessageText } from "./studio-actions";
-import type { Message, Character } from "./types";
+import type { Message, Character } from "../types";
 
 export function ScriptPanel() {
   const { state, setState } = useStudio();

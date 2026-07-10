@@ -1,4 +1,4 @@
-import type { Character, DeliveryStatus, Meridiem, Message, StudioState } from "./types";
+import type { Character, DeliveryStatus, Meridiem, Message, StudioState } from "../types";
 
 export type EpisodeDocument = {
   version: 1;

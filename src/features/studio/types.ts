@@ -40,3 +40,8 @@ export type StudioState = {
   /** Message ids that force a new export frame to start immediately before them. */
   frameBreaks: string[];
 };
+
+export type StudioInitialData = {
+  state: StudioState;
+  episode: { id: string; updatedAt: string };
+};

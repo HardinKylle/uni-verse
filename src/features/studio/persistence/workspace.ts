@@ -1,7 +1,6 @@
-import { demoState } from "./demo-state";
+import { demoState } from "../demo-state";
 import { deserializeEpisode, serializeEpisode } from "./episode-doc";
-import type { StudioInitialData } from "./studio";
-import type { Character } from "./types";
+import type { Character, StudioInitialData } from "../types";
 import type { Json } from "@/lib/supabase/database.types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 

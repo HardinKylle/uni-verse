@@ -10,8 +10,8 @@
 
 import { arrayMove } from "@dnd-kit/sortable";
 
-import { CHARACTER_PALETTE } from "./constants";
-import type { Character, StudioState } from "./types";
+import { CHARACTER_PALETTE } from "../constants";
+import type { Character, StudioState } from "../types";
 
 /** `crypto.randomUUID()` with a fallback for non-secure contexts / older runtimes. */
 export function newId(prefix: string): string {

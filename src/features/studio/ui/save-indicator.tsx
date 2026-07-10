@@ -1,4 +1,4 @@
-import type { SaveStatus } from "./use-episode-autosave";
+import type { SaveStatus } from "../persistence/use-episode-autosave";
 
 const labels: Record<SaveStatus, string> = {
   saved: "Saved",

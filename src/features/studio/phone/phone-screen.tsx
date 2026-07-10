@@ -5,7 +5,7 @@ import {
   KEYBOARD_HEIGHT_CLOSED,
   KEYBOARD_HEIGHT_OPEN,
   PHONE_SCREEN_WIDTH,
-} from "./constants";
+} from "../constants";
 import {
   ConversationHeader,
   HomeIndicator,
@@ -21,7 +21,7 @@ import {
   timestampRowClassName,
   type GroupFlags,
 } from "./phone-preview";
-import type { Message, StudioState } from "./types";
+import type { Message, StudioState } from "../types";
 
 /**
  * A static, non-animated render of one phone screen's worth of messages —
