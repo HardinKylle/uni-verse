@@ -1,14 +1,24 @@
+import { ClaimUsernameForm } from "./login/claim-username-form";
 import { Studio } from "./_components/studio/studio";
 import { loadOrCreateWorkspace } from "./_components/studio/workspace";
-import { getCurrentUser } from "@/lib/supabase/server";
+import { createSupabaseServerClient, getCurrentUser } from "@/lib/supabase/server";
 
 export default async function Home() {
   const user = await getCurrentUser();
+  if (!user) return <Studio />;
 
-  const displayName = user
-    ? (user.user_metadata.full_name as string | undefined) ?? user.email ?? "Signed-in writer"
-    : undefined;
-  const initialData = user ? await loadOrCreateWorkspace(user.id) : undefined;
+  const supabase = await createSupabaseServerClient();
+  const profile = await supabase.from("profiles").select("username").eq("id", user.id).maybeSingle();
+  if (profile.error) throw profile.error;
 
-  return <Studio authenticatedUser={displayName} initialData={initialData} />;
+  if (!profile.data?.username) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#F7F3EF] px-6 py-12">
+        <ClaimUsernameForm />
+      </main>
+    );
+  }
+
+  const initialData = await loadOrCreateWorkspace(user.id);
+  return <Studio authenticatedUser={`@${profile.data.username}`} initialData={initialData} />;
 }

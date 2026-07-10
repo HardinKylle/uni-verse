@@ -4,7 +4,7 @@ test("login page offers email + password and Google sign-in", async ({ page }) =
   await page.goto("/login");
 
   await expect(page.getByRole("heading", { name: "Keep your story close." })).toBeVisible();
-  await expect(page.getByRole("textbox", { name: "Email address" })).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Email or username" })).toBeVisible();
   await expect(page.getByLabel("Password")).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();

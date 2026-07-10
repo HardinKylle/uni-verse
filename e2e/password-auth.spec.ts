@@ -1,12 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { createAdminClient, createConfirmedUser } from "./fixtures";
+import { createAdminClient, createConfirmedUser, randomUsername } from "./fixtures";
 
 async function attemptSignup(page: Page, { password, confirmPassword }: { password: string; confirmPassword: string }) {
   await page.goto("/login");
   await page.getByRole("button", { name: "New here? Create an account" }).click();
 
   await page.getByRole("textbox", { name: "Email address" }).fill(`playwright-${crypto.randomUUID()}@example.com`);
+  await page.getByRole("textbox", { name: "Username" }).fill(randomUsername());
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByLabel("Confirm password").fill(confirmPassword);
   await page.getByRole("button", { name: "Create account" }).click();
@@ -39,7 +40,7 @@ test("a confirmed password user can sign in through the UI", async ({ page }) =>
 
   try {
     await page.goto("/login");
-    await page.getByRole("textbox", { name: "Email address" }).fill(email);
+    await page.getByRole("textbox", { name: "Email or username" }).fill(email);
     await page.getByLabel("Password").fill(password);
     await page.getByRole("button", { name: "Sign in" }).click();
 

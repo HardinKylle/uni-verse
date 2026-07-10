@@ -22,16 +22,25 @@ export function createAdminClient() {
   });
 }
 
-export async function createConfirmedUser(admin: ReturnType<typeof createAdminClient>) {
+export function randomUsername() {
+  return `pw_${crypto.randomUUID().replace(/-/g, "").slice(0, 12)}`;
+}
+
+export async function createConfirmedUser(
+  admin: ReturnType<typeof createAdminClient>,
+  options: { username?: string | null } = {},
+) {
   const email = `playwright-${crypto.randomUUID()}@example.com`;
   const password = `Test-${crypto.randomUUID()}!`;
+  const username = options.username === null ? null : options.username ?? randomUsername();
   const { data, error } = await admin.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
+    user_metadata: { username },
   });
   if (error) throw error;
-  return { id: data.user.id, email, password };
+  return { id: data.user.id, email, password, username };
 }
 
 type AuthFixtures = {
