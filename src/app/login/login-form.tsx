@@ -3,7 +3,9 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 
+import { isUsernameTaken, signInWithUsername } from "./actions";
 import { confirmPasswordError, passwordError } from "./validate-credentials";
+import { normalizeUsername, usernameError } from "./validate-username";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { focusRing, miniLabel, standardInput } from "../_components/studio/shared-ui";
@@ -24,36 +26,55 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
     event.preventDefault();
 
     const form = new FormData(event.currentTarget);
-    const email = String(form.get("email") ?? "");
     const password = String(form.get("password") ?? "");
 
-    if (mode === "signup") {
-      const confirmPassword = String(form.get("confirmPassword") ?? "");
-      const message = passwordError(password) ?? confirmPasswordError(password, confirmPassword);
-      if (message) {
-        setStatus({ kind: "error", message });
-        return;
-      }
-    }
-
-    setIsSubmitting(true);
-    setStatus(null);
-
     if (mode === "signin") {
-      const { error } = await getSupabaseBrowserClient().auth.signInWithPassword({ email, password });
-      if (error) {
+      const identifier = String(form.get("identifier") ?? "");
+
+      setIsSubmitting(true);
+      setStatus(null);
+
+      // A leading "@" can't start an email address, so "@jaz" is unambiguously a
+      // username typed the social-handle way — route it like plain "jaz".
+      const isEmail = identifier.includes("@") && !identifier.startsWith("@");
+      const errorMessage = isEmail
+        ? (await getSupabaseBrowserClient().auth.signInWithPassword({ email: identifier, password })).error
+            ?.message
+        : (await signInWithUsername(identifier, password)).error;
+      if (errorMessage) {
         setIsSubmitting(false);
-        setStatus({ kind: "error", message: error.message });
+        setStatus({ kind: "error", message: errorMessage });
         return;
       }
       window.location.assign("/");
       return;
     }
 
+    const email = String(form.get("email") ?? "");
+    const username = normalizeUsername(String(form.get("username") ?? ""));
+    const confirmPassword = String(form.get("confirmPassword") ?? "");
+    const message =
+      usernameError(username) ??
+      passwordError(password) ??
+      confirmPasswordError(password, confirmPassword);
+    if (message) {
+      setStatus({ kind: "error", message });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setStatus(null);
+
+    if (await isUsernameTaken(username)) {
+      setIsSubmitting(false);
+      setStatus({ kind: "error", message: "That username is already taken." });
+      return;
+    }
+
     const { data, error } = await getSupabaseBrowserClient().auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: callbackUrl() },
+      options: { emailRedirectTo: callbackUrl(), data: { username } },
     });
 
     if (error) {
@@ -115,17 +136,49 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
       ) : null}
 
       <form onSubmit={submitPassword} className="space-y-4">
-        <label className="block">
-          <span className={miniLabel}>Email address</span>
-          <input
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            placeholder="writer@example.com"
-            className={cn(standardInput, "border-sand-200 bg-sand-50 px-3 py-2.5 hover:bg-sand-50")}
-          />
-        </label>
+        {mode === "signin" ? (
+          <label className="block">
+            <span className={miniLabel}>Email or username</span>
+            <input
+              name="identifier"
+              type="text"
+              autoComplete="username"
+              required
+              placeholder="writer@example.com or writer"
+              className={cn(standardInput, "border-sand-200 bg-sand-50 px-3 py-2.5 hover:bg-sand-50")}
+            />
+          </label>
+        ) : (
+          <>
+            <label className="block">
+              <span className={miniLabel}>Email address</span>
+              <input
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                placeholder="writer@example.com"
+                className={cn(standardInput, "border-sand-200 bg-sand-50 px-3 py-2.5 hover:bg-sand-50")}
+              />
+            </label>
+            <div>
+              <label className="block">
+                <span className={miniLabel}>Username</span>
+                <input
+                  name="username"
+                  type="text"
+                  autoComplete="username"
+                  required
+                  placeholder="writer"
+                  className={cn(standardInput, "border-sand-200 bg-sand-50 px-3 py-2.5 hover:bg-sand-50")}
+                />
+              </label>
+              <span className="mt-1.5 block text-xs text-sand-400">
+                3–20 characters: lowercase letters, numbers, and underscores. Shown instead of your email.
+              </span>
+            </div>
+          </>
+        )}
         <div>
           <label className="block">
             <span className={miniLabel}>Password</span>
