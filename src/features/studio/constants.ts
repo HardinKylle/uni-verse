@@ -40,6 +40,9 @@ export const CHARACTER_PALETTE = [
 /** Fixed export/preview screen width in CSS px — matches the iOS 375pt design width. */
 export const PHONE_SCREEN_WIDTH = 375;
 
+/** Avatar upload size guard, in bytes. */
+export const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
+
 /** Export raster scale (2x = retina). */
 export const EXPORT_SCALE = 2;
 

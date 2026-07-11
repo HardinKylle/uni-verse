@@ -8,6 +8,7 @@ import {
   deleteCharacter,
   deleteMessage,
   duplicateMessage,
+  reorderCharacters,
   reorderMessages,
   selectMentionSender,
   toggleFrameBreak,
@@ -205,5 +206,23 @@ describe("character actions", () => {
 
     const closed = toggleEditingCharacter(opened, "c1");
     expect(closed.editingCharacterId).toBeNull();
+  });
+});
+
+describe("reorderCharacters", () => {
+  it("moves a character to another position", () => {
+    const next = reorderCharacters(makeState(), "c2", "c1");
+    expect(next.characters.map((c) => c.id)).toEqual(["c2", "c1"]);
+  });
+
+  it("is a no-op when active and over ids match", () => {
+    const state = makeState();
+    expect(reorderCharacters(state, "c1", "c1")).toBe(state);
+  });
+
+  it("is a no-op when either drag id is missing", () => {
+    const state = makeState();
+    expect(reorderCharacters(state, "missing", "c1")).toBe(state);
+    expect(reorderCharacters(state, "c1", "missing")).toBe(state);
   });
 });

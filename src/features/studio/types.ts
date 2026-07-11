@@ -2,7 +2,10 @@ export type Character = {
   id: string;
   name: string;
   color: string;
+  /** Display URL: a data URL (demo/anon), an optimistic blob URL, or a resolved public URL. */
   avatar?: string;
+  /** Storage object path — the persisted value the character-row diff writes to `avatar_path`. */
+  avatarPath?: string;
 };
 
 export type MessageType = "text" | "timestamp";
@@ -43,5 +46,7 @@ export type StudioState = {
 
 export type StudioInitialData = {
   state: StudioState;
+  projectId: string;
+  userId: string;
   episode: { id: string; updatedAt: string };
 };

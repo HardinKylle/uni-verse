@@ -76,7 +76,12 @@ export async function loadOrCreateWorkspace(userId: string): Promise<StudioIniti
     id: character.id,
     name: character.name,
     color: character.color,
-    ...(character.avatar_path ? { avatar: character.avatar_path } : {}),
+    ...(character.avatar_path
+      ? {
+          avatarPath: character.avatar_path,
+          avatar: supabase.storage.from("avatars").getPublicUrl(character.avatar_path).data.publicUrl,
+        }
+      : {}),
   }));
   const state = deserializeEpisode(episodeResult.data.script, characters);
   state.projectName = project.title;
@@ -84,6 +89,8 @@ export async function loadOrCreateWorkspace(userId: string): Promise<StudioIniti
 
   return {
     state,
+    projectId: project.id,
+    userId,
     episode: {
       id: episodeResult.data.id,
       updatedAt: episodeResult.data.updated_at,

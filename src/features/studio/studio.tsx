@@ -14,8 +14,17 @@ import { StudioContext } from "./studio-context";
 import { PANEL_WIDTH } from "./constants";
 import { demoState } from "./demo-state";
 import { SaveIndicator } from "./ui/save-indicator";
-import { useEpisodeAutosave } from "./persistence/use-episode-autosave";
+import { useEpisodeAutosave, type SaveStatus } from "./persistence/use-episode-autosave";
+import { useCharacterAutosave } from "./persistence/use-character-autosave";
+import { useProjectAutosave } from "./persistence/use-project-autosave";
 import type { StudioInitialData } from "./types";
+
+const STATUS_PRIORITY: SaveStatus[] = ["conflict", "retrying", "saving", "saved"];
+
+/** Combines the three independently-diffed autosave slices into one indicator, worst status wins. */
+function combineSaveStatus(...statuses: SaveStatus[]): SaveStatus {
+  return STATUS_PRIORITY.find((status) => statuses.includes(status)) ?? "saved";
+}
 
 export function Studio({
   authenticatedUser,
@@ -25,9 +34,15 @@ export function Studio({
   initialData?: StudioInitialData;
 }) {
   const [state, setState] = useState(initialData?.state ?? demoState);
-  const saveStatus = useEpisodeAutosave(state, initialData?.episode);
+  const episodeStatus = useEpisodeAutosave(state, initialData?.episode);
+  const characterStatus = useCharacterAutosave(state, initialData?.projectId);
+  const projectStatus = useProjectAutosave(state, initialData?.projectId);
+  const saveStatus = combineSaveStatus(episodeStatus, characterStatus, projectStatus);
   const isAuthenticated = Boolean(authenticatedUser);
-  const contextValue = useMemo(() => ({ state, setState, isAuthenticated }), [state, isAuthenticated]);
+  const contextValue = useMemo(
+    () => ({ state, setState, isAuthenticated, userId: initialData?.userId }),
+    [state, isAuthenticated, initialData?.userId],
+  );
   // Every studio action replaces these arrays, so identity against the seed
   // distinguishes real content edits from panel toggles and screen settings.
   const hasDemoEdits = state.messages !== demoState.messages || state.characters !== demoState.characters;
