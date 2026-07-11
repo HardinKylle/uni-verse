@@ -27,6 +27,8 @@ describe("Studio", () => {
         characters: demoState.characters.map((character) => ({ ...character })),
         messages: demoState.messages.map((message) => ({ ...message })),
       },
+      projectId: "project-1",
+      userId: "user-1",
       episode: { id: "episode-1", updatedAt: "2026-07-06T00:00:00.000Z" },
     }} />);
 

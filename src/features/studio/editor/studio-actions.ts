@@ -157,3 +157,13 @@ export function deleteCharacter(state: StudioState, id: string): StudioState {
 export function toggleEditingCharacter(state: StudioState, id: string): StudioState {
   return { ...state, editingCharacterId: state.editingCharacterId === id ? null : id };
 }
+
+export function reorderCharacters(state: StudioState, activeId: string, overId: string): StudioState {
+  if (activeId === overId) return state;
+
+  const oldIndex = state.characters.findIndex((c) => c.id === activeId);
+  const newIndex = state.characters.findIndex((c) => c.id === overId);
+  if (oldIndex === -1 || newIndex === -1) return state;
+
+  return { ...state, characters: arrayMove(state.characters, oldIndex, newIndex) };
+}

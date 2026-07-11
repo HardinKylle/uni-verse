@@ -13,6 +13,8 @@ type StudioContextValue = {
   state: StudioState;
   setState: Dispatch<SetStateAction<StudioState>>;
   isAuthenticated: boolean;
+  /** Present only when signed in — used to scope avatar upload storage paths. */
+  userId: string | undefined;
 };
 
 export const StudioContext = createContext<StudioContextValue | null>(null);
