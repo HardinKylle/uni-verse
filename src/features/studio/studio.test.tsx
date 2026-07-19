@@ -123,9 +123,11 @@ describe("Studio", () => {
     const user = userEvent.setup();
     render(<Studio />);
 
-    const ownerSelect = screen.getByRole("combobox", { name: "Whose phone" });
+    // HeroUI's Select trigger is a button labelled by its value plus its label,
+    // so the name is a substring match rather than the old `combobox` role.
+    const ownerSelect = screen.getByRole("button", { name: /Whose phone/ });
     ownerSelect.focus();
-    await user.keyboard("{ArrowDown}{ArrowDown}{Enter}");
+    await user.keyboard("{Enter}{ArrowUp}{Enter}");
 
     expect(ownerSelect).toHaveTextContent("Jaz");
     expect(screen.getAllByText("This phone")[0]).toBeInTheDocument();

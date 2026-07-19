@@ -3,9 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpRight, LoaderCircle, LogOut, Pencil, Plus } from "lucide-react";
+import { ArrowUpRight, LoaderCircle, Pencil, Plus } from "lucide-react";
 
 import { createBlankProjectSeed } from "./new-project";
+import { Button } from "@heroui/react";
+
+import { SignOutButton } from "@/features/account/sign-out-button";
 import type { ProjectSummary } from "./types";
 import type { Json } from "@/lib/supabase/database.types";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -105,15 +108,7 @@ export function Dashboard({
             <span className="hidden max-w-56 truncate text-xs text-sand-500 sm:block">
               Signed in as {username}
             </span>
-            <form action="/auth/signout" method="post">
-              <button
-                type="submit"
-                className="flex h-9 items-center gap-1.5 rounded-lg border border-sand-200 px-3 text-[12.5px] font-medium text-sand-500 transition-colors hover:bg-sand-50 hover:text-accent-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-              >
-                <LogOut className="size-3.5" aria-hidden />
-                Sign out
-              </button>
-            </form>
+            <SignOutButton />
           </div>
         </div>
       </header>
@@ -124,11 +119,12 @@ export function Dashboard({
             <p className="text-xs font-semibold uppercase text-accent-600">Your library</p>
             <h1 className="mt-2 font-display text-4xl text-sand-900 sm:text-5xl">Stories</h1>
           </div>
-          <button
-            type="button"
-            onClick={createProject}
-            disabled={isCreating}
-            className="flex h-11 items-center justify-center gap-2 self-start rounded-lg bg-accent-500 px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-600 disabled:cursor-wait disabled:opacity-65 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 sm:self-auto"
+          <Button
+            variant="primary"
+            size="lg"
+            className="self-start sm:self-auto"
+            isDisabled={isCreating}
+            onPress={createProject}
           >
             {isCreating ? (
               <LoaderCircle className="size-4 animate-spin" aria-hidden />
@@ -136,7 +132,7 @@ export function Dashboard({
               <Plus className="size-4" aria-hidden />
             )}
             {isCreating ? "Creating…" : "New story"}
-          </button>
+          </Button>
         </div>
 
         {error ? (
@@ -204,15 +200,14 @@ export function Dashboard({
 
               {editingId !== project.id ? (
                 <div className="absolute right-0 top-6 flex items-center gap-1 sm:top-7">
-                  <button
-                    type="button"
-                    onClick={() => beginEdit(project)}
-                    className="flex size-9 items-center justify-center rounded-lg text-sand-400 transition-colors hover:bg-white hover:text-sand-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                  <Button
+                    variant="ghost"
+                    isIconOnly
                     aria-label={`Edit ${project.title}`}
-                    title="Edit story details"
+                    onPress={() => beginEdit(project)}
                   >
                     <Pencil className="size-4" aria-hidden />
-                  </button>
+                  </Button>
                   <Link
                     href={`/p/${project.id}`}
                     onClick={() => setOpeningProjectId(project.id)}

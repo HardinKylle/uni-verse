@@ -6,5 +6,7 @@ export async function POST(request: NextRequest) {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
 
-  return NextResponse.redirect(new URL("/", request.url), { status: 303 });
+  // Back to sign-in rather than `/`, which would drop the writer into the
+  // anonymous demo studio as if they were a new visitor.
+  return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
 }

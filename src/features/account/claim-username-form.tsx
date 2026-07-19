@@ -2,9 +2,13 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 
+import { Button } from "@heroui/react";
+
 import { claimUsername } from "./actions";
+import { SignOutButton } from "./sign-out-button";
+import { TextInput } from "./text-input";
 import { normalizeUsername, usernameError } from "./validate-username";
-import { focusRing, miniLabel, standardInput } from "@/components/ui/form-styles";
+import { miniLabel } from "@/components/ui/form-styles";
 import { cn } from "@/lib/utils";
 
 export function ClaimUsernameForm() {
@@ -60,40 +64,18 @@ export function ClaimUsernameForm() {
       ) : null}
 
       <form onSubmit={submit} className="space-y-4">
-        <label className="block">
-          <span className={miniLabel}>Username</span>
-          <input
-            name="username"
-            type="text"
-            autoComplete="username"
-            required
-            placeholder="writer"
-            className={cn(standardInput, "border-sand-200 bg-sand-50 px-3 py-2.5 hover:bg-sand-50")}
-          />
-        </label>
+        <TextInput label="Username" name="username" autoComplete="username" placeholder="writer" />
         <span className="block text-xs text-sand-400">
           3–20 characters: lowercase letters, numbers, and underscores.
         </span>
-        <button
-          type="submit"
-          disabled={!isHydrated || isSubmitting}
-          className={cn(
-            "w-full rounded-lg bg-accent-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-600 disabled:cursor-wait disabled:opacity-60",
-            focusRing,
-          )}
-        >
+        <Button type="submit" variant="primary" fullWidth isDisabled={!isHydrated || isSubmitting}>
           {isSubmitting ? "Claiming…" : "Claim username"}
-        </button>
+        </Button>
       </form>
 
-      <form action="/auth/signout" method="post">
-        <button
-          type="submit"
-          className={cn("mt-4 block w-full text-center text-xs text-sand-500 hover:text-sand-800", focusRing)}
-        >
-          Sign out
-        </button>
-      </form>
+      <div className="mt-4">
+        <SignOutButton variant="ghost" fullWidth />
+      </div>
     </div>
   );
 }

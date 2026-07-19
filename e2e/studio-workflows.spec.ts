@@ -76,9 +76,9 @@ test("cast and screen settings remain synchronized with the preview", async ({ p
   await page.getByRole("button", { name: "Add character" }).click();
   const characterName = page.getByRole("textbox", { name: "Character name" });
   await characterName.fill("Morgan");
-  await expect(page.getByRole("combobox", { name: "Sending as" })).toContainText("Morgan");
+  await expect(page.getByRole("button", { name: "Sending as" })).toContainText("Morgan");
 
-  const ownerSelect = page.getByRole("combobox", { name: "Whose phone" });
+  const ownerSelect = page.getByRole("button", { name: "Whose phone" });
   await ownerSelect.click();
   await page.getByRole("listbox", { name: "Whose phone" }).getByRole("option", { name: "Morgan" }).click();
   await expect(page.getByText("This phone")).toHaveCount(1);
@@ -100,7 +100,7 @@ test("cast and screen settings remain synchronized with the preview", async ({ p
   await page.getByRole("button", { name: "Close properties" }).click();
   await expect(page.getByRole("button", { name: "Open properties" })).toBeVisible();
   await page.getByRole("button", { name: "Open properties" }).click();
-  await expect(page.getByRole("combobox", { name: "Whose phone" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Whose phone" })).toBeVisible();
 });
 
 test("avatar upload can be applied and removed", async ({ page }) => {

@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Button } from "@heroui/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Download, Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { EXPORT_ASPECT_RATIOS, type ExportAspectRatioId } from "../constants";
-import { focusRing, miniLabel, SegmentedControl } from "../ui/shared-ui";
+import { miniLabel, SegmentedControl } from "../ui/shared-ui";
 import { useStudio } from "../studio-context";
 import { useExport } from "./use-export";
 
@@ -51,20 +52,17 @@ export function ExportButton() {
 
   return (
     <div className="relative" ref={ref}>
-      <button
+      <Button
         ref={triggerRef}
-        type="button"
-        onClick={() => setIsOpen((open) => !open)}
+        variant="primary"
+        size="sm"
         aria-expanded={isOpen}
         aria-haspopup="dialog"
-        className={cn(
-          "flex h-9 items-center gap-1.5 rounded-lg bg-accent-500 px-3 text-[12.5px] font-semibold text-white shadow-sm transition-colors hover:bg-accent-600",
-          focusRing,
-        )}
+        onPress={() => setIsOpen((open) => !open)}
       >
         <Download className="size-4" />
         Export
-      </button>
+      </Button>
 
       <AnimatePresence>
         {isOpen && (
@@ -80,22 +78,19 @@ export function ExportButton() {
             <p className={miniLabel}>Frame shape</p>
             <div className="mb-4 grid grid-cols-2 gap-1.5">
               {EXPORT_ASPECT_RATIOS.map((ratio) => (
-                <button
+                <Button
                   key={ratio.id}
-                  type="button"
+                  variant={effectiveAspectRatio === ratio.id ? "secondary" : "outline"}
+                  size="sm"
                   aria-pressed={effectiveAspectRatio === ratio.id}
-                  disabled={forceNativeShape || (!isAuthenticated && ratio.id !== EXPORT_ASPECT_RATIOS[0].id)}
-                  onClick={() => setAspectRatio(ratio.id)}
                   className={cn(
-                    "rounded-lg border px-2 py-1.5 text-[11.5px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40",
-                    effectiveAspectRatio === ratio.id
-                      ? "border-accent-500 bg-accent-100/60 text-accent-900"
-                      : "border-sand-200 text-sand-600 hover:bg-sand-50",
-                    focusRing,
+                    effectiveAspectRatio === ratio.id && "border-accent-500 bg-accent-100/60 text-accent-900",
                   )}
+                  isDisabled={forceNativeShape || (!isAuthenticated && ratio.id !== EXPORT_ASPECT_RATIOS[0].id)}
+                  onPress={() => setAspectRatio(ratio.id)}
                 >
                   {ratio.label}
-                </button>
+                </Button>
               ))}
             </div>
 
@@ -130,14 +125,11 @@ export function ExportButton() {
               </p>
             ) : null}
 
-            <button
-              type="button"
-              disabled={frames.length === 0 || isExporting || isPreparing}
-              onClick={() => void exportEpisode()}
-              className={cn(
-                "flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-2.5 text-[13px] font-semibold text-white shadow-sm transition-colors hover:bg-accent-600 disabled:pointer-events-none disabled:bg-sand-200 disabled:text-sand-400",
-                focusRing,
-              )}
+            <Button
+              variant="primary"
+              fullWidth
+              isDisabled={frames.length === 0 || isExporting || isPreparing}
+              onPress={() => void exportEpisode()}
             >
               {isExporting || isPreparing ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
               {isExporting
@@ -149,7 +141,7 @@ export function ExportButton() {
                   : frames.length === 1
                     ? "Export as PNG"
                     : `Export ${exportFrameCount} PNGs as ZIP`}
-            </button>
+            </Button>
           </motion.div>
         )}
       </AnimatePresence>

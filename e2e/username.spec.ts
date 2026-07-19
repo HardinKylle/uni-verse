@@ -9,8 +9,8 @@ test("sign-up rejects an invalid or reserved username inline", async ({ page }) 
 
   await page.getByRole("textbox", { name: "Email address" }).fill(`playwright-${crypto.randomUUID()}@example.com`);
   await page.getByRole("textbox", { name: "Username" }).fill("ab");
-  await page.getByLabel("Password", { exact: true }).fill("Abcd1234");
-  await page.getByLabel("Confirm password").fill("Abcd1234");
+  await page.getByRole("textbox", { name: "Password", exact: true }).fill("Abcd1234");
+  await page.getByRole("textbox", { name: "Confirm password", exact: true }).fill("Abcd1234");
   await page.getByRole("button", { name: "Create account" }).click();
 
   await expect(
@@ -32,7 +32,7 @@ test("a user can sign in with their email or their username", async ({ page }) =
   try {
     await page.goto("/login");
     await page.getByRole("textbox", { name: "Email or username" }).fill(email);
-    await page.getByLabel("Password").fill(password);
+    await page.getByRole("textbox", { name: "Password", exact: true }).fill(password);
     await page.getByRole("button", { name: "Sign in" }).click();
 
     await expect(page).toHaveURL(/\/p\/[0-9a-f-]+$/);
@@ -40,11 +40,12 @@ test("a user can sign in with their email or their username", async ({ page }) =
     await expect(page.getByText(email)).not.toBeVisible();
 
     await page.getByRole("button", { name: "Sign out" }).click();
-    await expect(page).toHaveURL("/");
+    await page.getByRole("alertdialog", { name: "Sign out?" }).getByRole("button", { name: "Sign out" }).click();
+    await expect(page).toHaveURL("/login");
 
     await page.goto("/login");
     await page.getByRole("textbox", { name: "Email or username" }).fill(username!);
-    await page.getByLabel("Password").fill(password);
+    await page.getByRole("textbox", { name: "Password", exact: true }).fill(password);
     await page.getByRole("button", { name: "Sign in" }).click();
 
     await expect(page).toHaveURL("/dashboard");
@@ -64,10 +65,13 @@ test("a legacy account without a username is prompted once, and a taken name sho
   try {
     await page.goto("/login");
     await page.getByRole("textbox", { name: "Email or username" }).fill(legacy.email);
-    await page.getByLabel("Password").fill(legacy.password);
+    await page.getByRole("textbox", { name: "Password", exact: true }).fill(legacy.password);
     await page.getByRole("button", { name: "Sign in" }).click();
 
     await expect(page.getByRole("heading", { name: "Choose your username." })).toBeVisible();
+    // The field is a controlled HeroUI TextField, so anything typed before
+    // hydration is discarded. The submit button enabling is the ready signal.
+    await expect(page.getByRole("button", { name: "Claim username" })).toBeEnabled();
 
     await page.getByRole("textbox", { name: "Username" }).fill(holder.username!);
     await page.getByRole("button", { name: "Claim username" }).click();
@@ -94,7 +98,7 @@ test("signing in with an unknown username fails with the same generic error as a
 }) => {
   await page.goto("/login");
   await page.getByRole("textbox", { name: "Email or username" }).fill(`nobody_${crypto.randomUUID().slice(0, 8)}`);
-  await page.getByLabel("Password").fill("whatever-Password1");
+  await page.getByRole("textbox", { name: "Password", exact: true }).fill("whatever-Password1");
   await page.getByRole("button", { name: "Sign in" }).click();
 
   await expect(page.getByText("Invalid login credentials")).toBeVisible();

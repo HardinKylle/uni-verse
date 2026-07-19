@@ -1,6 +1,7 @@
 "use client";
 
 import { type KeyboardEvent, useEffect, useRef, useState, useMemo } from "react";
+import { Button } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Trash2, ArrowLeftRight, GripVertical, Clock, Copy, Scissors } from "lucide-react";
 import {
@@ -235,24 +236,27 @@ export function ScriptPanel() {
               }}
               onKeyDown={handleDraftKeyDown}
             />
-            <button
-              type="button"
-              disabled={!state.draft.trim()}
-              className={cn("flex size-11 shrink-0 items-center justify-center rounded-xl bg-accent-500 text-white shadow-sm transition-all hover:bg-accent-600 active:scale-95 disabled:pointer-events-none disabled:bg-sand-100 disabled:text-sand-300", focusRing)}
-              onClick={() => setState((current) => addMessage(current))}
+            <Button
+              variant="primary"
+              isIconOnly
+              className="size-11 shrink-0"
+              isDisabled={!state.draft.trim()}
               aria-label="Send message"
+              onPress={() => setState((current) => addMessage(current))}
             >
               <Send className="size-4" />
-            </button>
-            <button
-              type="button"
-              className={cn("flex size-11 shrink-0 items-center justify-center rounded-xl bg-sand-100 text-sand-500 shadow-sm transition-all hover:bg-sand-200 active:scale-95 disabled:pointer-events-none disabled:opacity-50", focusRing)}
-              onClick={() => setState((current) => addTimestamp(current))}
-              aria-label="Add timestamp"
-              title="Add timestamp divider"
-            >
-              <Clock className="size-4" />
-            </button>
+            </Button>
+            <span title="Add timestamp divider" className="shrink-0">
+              <Button
+                variant="secondary"
+                isIconOnly
+                className="size-11"
+                aria-label="Add timestamp"
+                onPress={() => setState((current) => addTimestamp(current))}
+              >
+                <Clock className="size-4" />
+              </Button>
+            </span>
           </div>
         </div>
       </div>
@@ -387,12 +391,16 @@ function SortableMessageNode({ message, sender, index }: { message: Message; sen
           />
 
           <div className="absolute right-0 flex items-center px-2 opacity-0 transition-opacity group-hover:opacity-100">
-            <button type="button" onClick={() => setState((current) => duplicateMessage(current, message.id))} className="rounded p-1.5 text-sand-400 transition-colors hover:bg-sand-100 hover:text-sand-900 focus:outline-none" aria-label="Duplicate timestamp" title="Duplicate timestamp">
-              <Copy className="size-3.5" />
-            </button>
-            <button type="button" onClick={() => setState((current) => deleteMessage(current, message.id))} className="rounded p-1.5 text-sand-400 transition-colors hover:bg-red-50 hover:text-red-500 focus:outline-none" aria-label="Delete timestamp" title="Delete timestamp">
-              <Trash2 className="size-3.5" />
-            </button>
+            <span title="Duplicate timestamp">
+              <Button variant="ghost" size="sm" isIconOnly aria-label="Duplicate timestamp" onPress={() => setState((current) => duplicateMessage(current, message.id))}>
+                <Copy className="size-3.5" />
+              </Button>
+            </span>
+            <span title="Delete timestamp">
+              <Button variant="ghost" size="sm" isIconOnly aria-label="Delete timestamp" onPress={() => setState((current) => deleteMessage(current, message.id))}>
+                <Trash2 className="size-3.5" />
+              </Button>
+            </span>
           </div>
         </div>
       </motion.li>
@@ -449,33 +457,39 @@ function SortableMessageNode({ message, sender, index }: { message: Message; sen
       </div>
 
       <div className="absolute right-3 top-2 flex items-center gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 rounded-lg bg-white/90 backdrop-blur-sm p-1 shadow-sm ring-1 ring-sand-200">
-        <button
-          type="button"
-          className={cn("flex size-7 items-center justify-center rounded-md text-sand-400 hover:bg-sand-100 hover:text-sand-900 transition-colors", focusRing)}
-          aria-label="Switch sender"
-          title="Switch sender"
-          onClick={() => setState((current) => cycleMessageSender(current, message.id))}
-        >
-          <ArrowLeftRight className="size-3.5" />
-        </button>
-        <button
-          type="button"
-          className={cn("flex size-7 items-center justify-center rounded-md text-sand-400 hover:bg-sand-100 hover:text-sand-900 transition-colors", focusRing)}
-          aria-label="Duplicate message"
-          title="Duplicate message"
-          onClick={() => setState((current) => duplicateMessage(current, message.id))}
-        >
-          <Copy className="size-3.5" />
-        </button>
-        <button
-          type="button"
-          className={cn("flex size-7 items-center justify-center rounded-md text-sand-400 hover:bg-red-50 hover:text-red-600 transition-colors", focusRing)}
-          aria-label="Delete message"
-          title="Delete message"
-          onClick={() => setState((current) => deleteMessage(current, message.id))}
-        >
-          <Trash2 className="size-3.5" />
-        </button>
+        <span title="Switch sender">
+          <Button
+            variant="ghost"
+            size="sm"
+            isIconOnly
+            aria-label="Switch sender"
+            onPress={() => setState((current) => cycleMessageSender(current, message.id))}
+          >
+            <ArrowLeftRight className="size-3.5" />
+          </Button>
+        </span>
+        <span title="Duplicate message">
+          <Button
+            variant="ghost"
+            size="sm"
+            isIconOnly
+            aria-label="Duplicate message"
+            onPress={() => setState((current) => duplicateMessage(current, message.id))}
+          >
+            <Copy className="size-3.5" />
+          </Button>
+        </span>
+        <span title="Delete message">
+          <Button
+            variant="ghost"
+            size="sm"
+            isIconOnly
+            aria-label="Delete message"
+            onPress={() => setState((current) => deleteMessage(current, message.id))}
+          >
+            <Trash2 className="size-3.5" />
+          </Button>
+        </span>
       </div>
     </motion.li>
   );
