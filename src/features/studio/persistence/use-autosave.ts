@@ -8,6 +8,11 @@ export type SaveOutcome<TSnapshot> =
   | { ok: true; next?: TSnapshot }
   | { ok: false; conflict?: boolean };
 
+export type AutosaveControl = {
+  status: SaveStatus;
+  flush: () => Promise<boolean>;
+};
+
 /**
  * Shared debounce/queue/retry/visibility-flush plumbing behind all three
  * autosave slices (episode doc, character rows, project metadata). A caller
@@ -23,14 +28,14 @@ export function useAutosave<TSnapshot>(
   save: (snapshot: TSnapshot, previous: TSnapshot) => Promise<SaveOutcome<TSnapshot>>,
   initial: TSnapshot,
   enabled: boolean,
-): SaveStatus {
+): AutosaveControl {
   const [status, setStatus] = useState<SaveStatus>("saved");
   const savedValue = useRef(initial);
   const savedKey = useRef(toKey(initial));
   const pendingSave = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const generation = useRef(0);
   const hasConflict = useRef(false);
-  const saveQueue = useRef(Promise.resolve());
+  const saveQueue = useRef(Promise.resolve(true));
   // Latest-ref pattern: `save`/`toKey` are commonly passed as fresh closures
   // each render, so reading them via refs (rather than depending on their
   // identity) keeps `runSave`/`enqueueSave` stable and the effects below
@@ -43,7 +48,7 @@ export function useAutosave<TSnapshot>(
   });
 
   const runSave = useCallback(async (snapshot: TSnapshot, currentGeneration: number) => {
-    if (!enabled) return;
+    if (!enabled) return true;
     if (generation.current === currentGeneration) setStatus("saving");
 
     while (true) {
@@ -53,9 +58,9 @@ export function useAutosave<TSnapshot>(
         if (outcome.conflict) {
           hasConflict.current = true;
           setStatus("conflict");
-          return;
+          return false;
         }
-        if (generation.current !== currentGeneration) return;
+        if (generation.current !== currentGeneration) return true;
         setStatus("retrying");
         await new Promise((resolve) => setTimeout(resolve, 1000));
         continue;
@@ -64,16 +69,30 @@ export function useAutosave<TSnapshot>(
       savedValue.current = outcome.next ?? snapshot;
       savedKey.current = toKeyRef.current(savedValue.current);
       if (generation.current === currentGeneration) setStatus("saved");
-      return;
+      return true;
     }
   }, [enabled]);
 
   const enqueueSave = useCallback((snapshot: TSnapshot, currentGeneration: number) => {
     saveQueue.current = saveQueue.current.then(() => runSave(snapshot, currentGeneration));
+    return saveQueue.current;
   }, [runSave]);
 
   const snapshot = serialize();
   const key = toKey(snapshot);
+
+  const flush = useCallback(async () => {
+    if (!enabled) return true;
+    if (hasConflict.current) return false;
+
+    clearTimeout(pendingSave.current);
+    const queuedOutcome = await saveQueue.current;
+    if (!queuedOutcome || hasConflict.current) return false;
+    if (key === savedKey.current) return true;
+
+    const currentGeneration = ++generation.current;
+    return enqueueSave(snapshot, currentGeneration);
+  }, [enabled, enqueueSave, key, snapshot]);
 
   useEffect(() => {
     if (!enabled || key === savedKey.current || hasConflict.current) return;
@@ -98,5 +117,5 @@ export function useAutosave<TSnapshot>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, key, enqueueSave]);
 
-  return status;
+  return { status, flush };
 }

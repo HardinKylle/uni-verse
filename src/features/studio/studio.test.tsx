@@ -1,9 +1,13 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Studio } from "./studio";
 import { demoState } from "./demo-state";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
 
 describe("Studio", () => {
   it("renders the header bar with the wordmark, auth CTA, export, and properties toggle", () => {
@@ -31,6 +35,7 @@ describe("Studio", () => {
       userId: "user-1",
       projectTitle: "Test Project",
       episode: { id: "episode-1", updatedAt: "2026-07-06T00:00:00.000Z" },
+      episodes: [{ id: "episode-1", position: 0, title: "Episode 1" }],
     }} />);
 
     expect(screen.queryByRole("link", { name: "Sign in" })).not.toBeInTheDocument();

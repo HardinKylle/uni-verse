@@ -54,7 +54,11 @@ export async function ensureFirstProject(userId: string): Promise<string | null>
   return result.data.id;
 }
 
-export async function loadProject(projectId: string, userId: string): Promise<StudioInitialData | null> {
+export async function loadProject(
+  projectId: string,
+  userId: string,
+  requestedEpisodeId?: string,
+): Promise<StudioInitialData | null> {
   const supabase = await createSupabaseServerClient();
   // RLS already scopes this to the owner; the explicit filter keeps the
   // guarantee visible in the query rather than resting on policy alone.
@@ -69,7 +73,7 @@ export async function loadProject(projectId: string, userId: string): Promise<St
   if (!projectResult.data) return null;
   const project = projectResult.data;
 
-  const [charactersResult, episodeResult] = await Promise.all([
+  const [charactersResult, episodeListResult] = await Promise.all([
     supabase
       .from("characters")
       .select("id, name, color, avatar_path")
@@ -77,15 +81,24 @@ export async function loadProject(projectId: string, userId: string): Promise<St
       .order("position"),
     supabase
       .from("episodes")
-      .select("id, title, description, script, updated_at")
+      .select("id, title, position")
       .eq("project_id", project.id)
-      .order("position")
-      .limit(1)
-      .single(),
+      .order("position"),
   ]);
 
   if (charactersResult.error) throw charactersResult.error;
+  if (episodeListResult.error) throw episodeListResult.error;
+  const selectedEpisode =
+    episodeListResult.data.find(({ id }) => id === requestedEpisodeId) ?? episodeListResult.data[0];
+  if (!selectedEpisode) throw new Error(`Project ${project.id} has no episodes`);
+
+  const episodeResult = await supabase
+    .from("episodes")
+    .select("id, title, description, script, updated_at")
+    .eq("id", selectedEpisode.id)
+    .single();
   if (episodeResult.error) throw episodeResult.error;
+  const episode = episodeResult.data;
 
   const characters: Character[] = charactersResult.data.map((character) => ({
     id: character.id,
@@ -98,9 +111,9 @@ export async function loadProject(projectId: string, userId: string): Promise<St
         }
       : {}),
   }));
-  const state = deserializeEpisode(episodeResult.data.script, characters);
-  state.episodeTitle = episodeResult.data.title;
-  state.episodeDescription = episodeResult.data.description;
+  const state = deserializeEpisode(episode.script, characters);
+  state.episodeTitle = episode.title;
+  state.episodeDescription = episode.description;
 
   return {
     state,
@@ -108,8 +121,9 @@ export async function loadProject(projectId: string, userId: string): Promise<St
     projectTitle: project.title,
     userId,
     episode: {
-      id: episodeResult.data.id,
-      updatedAt: episodeResult.data.updated_at,
+      id: episode.id,
+      updatedAt: episode.updated_at,
     },
+    episodes: episodeListResult.data,
   };
 }

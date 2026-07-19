@@ -50,4 +50,11 @@ export type StudioInitialData = {
   projectTitle: string;
   userId: string;
   episode: { id: string; updatedAt: string };
+  episodes: EpisodeSummary[];
+};
+
+export type EpisodeSummary = {
+  id: string;
+  position: number;
+  title: string;
 };

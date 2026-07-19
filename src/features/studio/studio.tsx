@@ -19,6 +19,7 @@ import { demoState } from "./demo-state";
 import { SaveIndicator } from "./ui/save-indicator";
 import { useEpisodeAutosave, type SaveStatus } from "./persistence/use-episode-autosave";
 import { useCharacterAutosave } from "./persistence/use-character-autosave";
+import { useEpisodeNavigation } from "./persistence/use-episode-navigation";
 import type { StudioInitialData } from "./types";
 
 const STATUS_PRIORITY: SaveStatus[] = ["conflict", "retrying", "saving", "saved"];
@@ -36,9 +37,15 @@ export function Studio({
   initialData?: StudioInitialData;
 }) {
   const [state, setState] = useState(initialData?.state ?? demoState);
-  const episodeStatus = useEpisodeAutosave(state, initialData?.episode);
-  const characterStatus = useCharacterAutosave(state, initialData?.projectId);
-  const saveStatus = combineSaveStatus(episodeStatus, characterStatus);
+  const episodeAutosave = useEpisodeAutosave(state, initialData?.episode);
+  const characterAutosave = useCharacterAutosave(state, initialData?.projectId);
+  const episodeNavigation = useEpisodeNavigation(
+    state,
+    initialData,
+    episodeAutosave,
+    characterAutosave,
+  );
+  const saveStatus = combineSaveStatus(episodeAutosave.status, characterAutosave.status);
   const isAuthenticated = Boolean(authenticatedUser);
   const contextValue = useMemo(
     () => ({ state, setState, isAuthenticated, userId: initialData?.userId }),
@@ -113,7 +120,13 @@ export function Studio({
 
         <div className="flex min-h-0 flex-1 gap-3">
           <div className="flex w-[820px] shrink-0 overflow-hidden rounded-2xl border border-sand-200/70 bg-white">
-            <EditorSidebar />
+            <EditorSidebar
+              episode={initialData ? {
+                activeId: initialData.episode.id,
+                episodes: initialData.episodes,
+                ...episodeNavigation,
+              } : undefined}
+            />
             <ScriptPanel />
           </div>
 
