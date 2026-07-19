@@ -6,14 +6,27 @@ import { loadProject } from "@/features/studio/persistence/workspace";
 
 export default async function ProjectPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ projectId: string }>;
+  searchParams: Promise<{ episode?: string | string[] }>;
 }) {
   const { userId, username } = await requireProfiledUser();
 
   const { projectId } = await params;
-  const initialData = await loadProject(projectId, userId);
+  const episodeParam = (await searchParams).episode;
+  const initialData = await loadProject(
+    projectId,
+    userId,
+    typeof episodeParam === "string" ? episodeParam : undefined,
+  );
   if (!initialData) notFound();
 
-  return <Studio authenticatedUser={`@${username}`} initialData={initialData} />;
+  return (
+    <Studio
+      key={initialData.episode.id}
+      authenticatedUser={`@${username}`}
+      initialData={initialData}
+    />
+  );
 }

@@ -3,7 +3,7 @@
 import { type ChangeEvent, useId } from "react";
 import { Button } from "@heroui/react";
 import { motion } from "framer-motion";
-import { Upload, Plus, Trash2, Edit2, X, GripVertical } from "lucide-react";
+import { Upload, Plus, Trash2, Edit2, X, GripVertical, LoaderCircle } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -29,37 +29,134 @@ import { CHARACTER_PALETTE } from "../constants";
 import { useAvatarUpload } from "../persistence/use-avatar-upload";
 import { addCharacter, deleteCharacter, reorderCharacters, toggleEditingCharacter, updateCharacter } from "./studio-actions";
 import { Panel, Avatar, standardInput, focusRing, miniLabel } from "../ui/shared-ui";
-import type { Character } from "../types";
+import type { Character, EpisodeSummary } from "../types";
 
-export function EditorSidebar() {
+type EpisodeNavigation = {
+  activeId: string;
+  episodes: EpisodeSummary[];
+  isPending: boolean;
+  error: string | undefined;
+  onCreate: () => void;
+  onOpen: (episodeId: string) => void;
+};
+
+export function EditorSidebar({ episode }: { episode?: EpisodeNavigation }) {
   return (
     <aside className="h-full w-[340px] shrink-0 overflow-y-auto border-r border-sand-100 bg-white px-5 pt-5 pb-12 [scrollbar-color:#e8ded7_transparent] [scrollbar-width:thin]">
-      <EpisodeInfo />
+      <EpisodeInfo episode={episode} />
       <CastSection />
     </aside>
   );
 }
 
-function EpisodeInfo() {
+function EpisodeInfo({ episode }: { episode?: EpisodeNavigation }) {
+  if (!episode) {
+    return (
+      <div className="mb-2 flex flex-col gap-1.5 border-b border-sand-100 px-1 pt-2 pb-6">
+        <EpisodeMetadata />
+      </div>
+    );
+  }
+
+  return (
+    <nav aria-label="Episodes" className="mb-6 border-b border-sand-100 pb-6">
+      <div className="mb-2.5 flex items-center justify-between">
+        <h2 className="font-mono text-[10.5px] font-medium tracking-[0.05em] text-sand-800 uppercase">
+          Episodes
+        </h2>
+        <Button
+          variant="ghost"
+          size="sm"
+          isIconOnly
+          aria-label="New episode"
+          isDisabled={episode.isPending}
+          onPress={episode.onCreate}
+        >
+          {episode.isPending
+            ? <LoaderCircle className="size-3.5 animate-spin" aria-hidden />
+            : <Plus className="size-3.5" aria-hidden />}
+        </Button>
+      </div>
+      <ol className="m-0 list-none space-y-1 p-0">
+        {episode.episodes.map((item) => {
+          const isActive = item.id === episode.activeId;
+          return (
+            <li key={item.id}>
+              {isActive ? (
+                <div className="rounded-md border border-accent-200 bg-accent-50/40 px-2 py-1.5">
+                  <span className="sr-only">Current episode</span>
+                  <EpisodeTitleInput
+                    className="h-7 border-0 bg-transparent px-1 text-[16px] shadow-none focus:ring-0"
+                  />
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className={cn(
+                    "flex h-10 w-full items-center rounded-md px-3 text-left font-display text-[15px] text-sand-600 transition-colors hover:bg-sand-50 hover:text-sand-900",
+                    focusRing,
+                  )}
+                  disabled={episode.isPending}
+                  onClick={() => episode.onOpen(item.id)}
+                >
+                  <span className="truncate">{item.title}</span>
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+      <EpisodeDescriptionInput className="mt-2" />
+      {episode.error ? <p role="alert" className="mt-2 text-[11px] font-medium text-red-600">{episode.error}</p> : null}
+    </nav>
+  );
+}
+
+function EpisodeMetadata() {
+  return (
+    <>
+      <EpisodeTitleInput className="text-[19px] placeholder:not-italic" />
+      <EpisodeDescriptionInput />
+    </>
+  );
+}
+
+function EpisodeTitleInput({ className }: { className?: string }) {
   const { state, setState } = useStudio();
 
   return (
-    <div className="flex flex-col gap-1.5 px-1 pt-2 pb-6 mb-2 border-b border-sand-100">
-      <input
-        aria-label="Episode title"
-        className={cn(standardInput, "font-display text-[19px] italic text-sand-900 placeholder:text-sand-300 placeholder:not-italic")}
-        value={state.episodeTitle}
-        onChange={(e) => setState((s) => ({ ...s, episodeTitle: e.target.value }))}
-        placeholder="Episode title"
-      />
-      <input
-        aria-label="Episode description"
-        className={cn(standardInput, "text-[12px] font-medium text-sand-500 placeholder:text-sand-300")}
-        value={state.episodeDescription}
-        onChange={(e) => setState((s) => ({ ...s, episodeDescription: e.target.value }))}
-        placeholder="Describe this episode..."
-      />
-    </div>
+    <input
+      aria-label="Episode title"
+      className={cn(
+        standardInput,
+        "font-display italic text-sand-900 placeholder:text-sand-300",
+        className,
+      )}
+      value={state.episodeTitle}
+      onChange={(event) => setState((current) => ({ ...current, episodeTitle: event.target.value }))}
+      placeholder="Episode title"
+    />
+  );
+}
+
+function EpisodeDescriptionInput({ className }: { className?: string }) {
+  const { state, setState } = useStudio();
+
+  return (
+    <input
+      aria-label="Episode description"
+      className={cn(
+        standardInput,
+        "text-[12px] font-medium text-sand-500 placeholder:text-sand-300",
+        className,
+      )}
+      value={state.episodeDescription}
+      onChange={(event) => setState((current) => ({
+        ...current,
+        episodeDescription: event.target.value,
+      }))}
+      placeholder="Describe this episode..."
+    />
   );
 }
 

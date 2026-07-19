@@ -18,6 +18,30 @@ export type EpisodeDocument = {
   };
 };
 
+const DEFAULT_SKIN: EpisodeDocument["skin"] = {
+  dark: false,
+  status: "Delivered",
+  day: "Today",
+  time: "9:41",
+  meridiem: "AM",
+  inbox: 12,
+  readTime: "10:01 PM",
+  bubbleColor: "blue",
+};
+
+export function createEmptyEpisodeDocument(characters: Character[]): EpisodeDocument {
+  const firstSenderId = characters[0]?.id ?? "";
+
+  return {
+    version: 1,
+    messages: [],
+    frameBreaks: [],
+    ownerId: firstSenderId,
+    activeSenderId: firstSenderId,
+    skin: { ...DEFAULT_SKIN },
+  };
+}
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
@@ -77,19 +101,19 @@ export function deserializeEpisode(document: unknown, characters: Character[]): 
     : fallbackSender;
 
   return {
-    dark: typeof skin.dark === "boolean" ? skin.dark : false,
+    dark: typeof skin.dark === "boolean" ? skin.dark : DEFAULT_SKIN.dark,
     characters,
     ownerId,
     activeSenderId,
     messages,
     editingCharacterId: null,
-    status: skin.status === "Read" || skin.status === "None" ? skin.status : "Delivered",
-    day: stringValue(skin.day, "Today"),
-    time: stringValue(skin.time, "9:41"),
-    meridiem: skin.meridiem === "PM" ? "PM" : "AM",
-    inbox: typeof skin.inbox === "number" || skin.inbox === "" ? skin.inbox : 12,
-    readTime: stringValue(skin.readTime, "10:01 PM"),
-    bubbleColor: skin.bubbleColor === "green" ? "green" : "blue",
+    status: skin.status === "Read" || skin.status === "None" ? skin.status : DEFAULT_SKIN.status,
+    day: stringValue(skin.day, DEFAULT_SKIN.day),
+    time: stringValue(skin.time, DEFAULT_SKIN.time),
+    meridiem: skin.meridiem === "PM" ? "PM" : DEFAULT_SKIN.meridiem,
+    inbox: typeof skin.inbox === "number" || skin.inbox === "" ? skin.inbox : DEFAULT_SKIN.inbox,
+    readTime: stringValue(skin.readTime, DEFAULT_SKIN.readTime),
+    bubbleColor: skin.bubbleColor === "green" ? "green" : DEFAULT_SKIN.bubbleColor,
     draft: "",
     episodeTitle: "Untitled Episode",
     episodeDescription: "",

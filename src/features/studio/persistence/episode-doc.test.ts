@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { deserializeEpisode, serializeEpisode } from "./episode-doc";
+import { createEmptyEpisodeDocument, deserializeEpisode, serializeEpisode } from "./episode-doc";
 import type { Character, StudioState } from "../types";
 
 const characters: Character[] = [
@@ -31,6 +31,26 @@ const state: StudioState = {
 };
 
 describe("episode document", () => {
+  it("creates a blank episode for the shared cast", () => {
+    expect(createEmptyEpisodeDocument(characters)).toEqual({
+      version: 1,
+      messages: [],
+      frameBreaks: [],
+      ownerId: characters[0].id,
+      activeSenderId: characters[0].id,
+      skin: {
+        dark: false,
+        status: "Delivered",
+        day: "Today",
+        time: "9:41",
+        meridiem: "AM",
+        inbox: 12,
+        readTime: "10:01 PM",
+        bubbleColor: "blue",
+      },
+    });
+  });
+
   it("round-trips persisted editor content without transient state", () => {
     const restored = deserializeEpisode(serializeEpisode(state), characters);
 
