@@ -1,15 +1,80 @@
-@import "tailwindcss";
+/* Pulls in Tailwind itself, so it replaces the bare `@import "tailwindcss"`. */
+@import "@heroui/styles";
 
+/* HeroUI v3 ships semantic tokens in `layer(theme)`; these unlayered overrides
+   win, so its components inherit the Kathalis palette without per-usage
+   `className`.
+
+   Kathalis is light-only — every surface hardcodes the sand palette. The
+   scaffolded `prefers-color-scheme: dark` block that used to live here flipped
+   `--foreground` to near-white, which was inert until HeroUI started reading
+   the same token for overlay text, list-box items, and `--accent-soft-foreground`
+   (white-on-white in a dark-mode OS). Reinstating dark mode means theming
+   HeroUI's `.dark` block too, not just these two values. */
 :root {
   --background: #ffffff;
-  --foreground: #18181b;
+  --foreground: #1b1615; /* sand-900 */
+
+  --surface: #ffffff;
+  --surface-secondary: #faf8f6; /* sand-50 */
+  --surface-tertiary: #f5f0eb; /* sand-100 */
+  --overlay: #ffffff;
+  --overlay-foreground: #1b1615;
+
+  --muted: #7d6e67; /* sand-500 */
+  --default: #f5f0eb; /* sand-100 */
+  --default-foreground: #1b1615;
+
+  --accent: #d44d5c; /* accent-500, Lobster Pink */
+  --accent-foreground: #ffffff;
+
+  --border: #e8ded7; /* sand-200 */
+  --separator: #e8ded7;
+  --focus: #d44d5c;
+
+  --field-background: #faf8f6; /* sand-50 */
+  --field-foreground: #1b1615;
+  --field-placeholder: #ac9a91; /* sand-400 */
+  --field-border: #e8ded7;
+  --field-border-width: 1px;
+
+  --radius: 0.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #18181b;
-    --foreground: #f4f4f5;
-  }
+/* HeroUI hardcodes `rounded-3xl`/`rounded-2xl` in its component CSS rather than
+   deriving them from `--radius`, which reads as pill-shaped next to Kathalis'
+   slightly-rounded rectangles. Unlayered rules beat `@layer components`, so
+   these win without `!important`. */
+.button,
+.button-group,
+.toggle-button,
+.toggle-button-group,
+.toolbar {
+  border-radius: 0.5rem;
+}
+
+.list-box-item,
+.menu-item,
+.tag,
+.chip {
+  border-radius: 0.375rem;
+}
+
+.alert-dialog__dialog,
+.modal__content,
+.popover,
+.select__popover,
+.list-box {
+  border-radius: 0.75rem;
+}
+
+/* HeroUI fades overlays in from `opacity: 0` (`fade-in-0`). A select popover
+   opens on top of the panel's own labels, so mid-fade the option text composites
+   over the text beneath it and reads as "the dropdown has no background". Keep
+   the zoom-in, drop the fade. */
+.select__popover[data-entering="true"],
+.popover[data-entering="true"] {
+  --tw-enter-opacity: 1;
 }
 
 @theme inline {

@@ -1,6 +1,7 @@
 "use client";
 
 import { type ChangeEvent, useId } from "react";
+import { Button } from "@heroui/react";
 import { motion } from "framer-motion";
 import { Upload, Plus, Trash2, Edit2, X, GripVertical } from "lucide-react";
 import {
@@ -109,9 +110,16 @@ function CastSection() {
           </ul>
         </SortableContext>
       </DndContext>
-      <button type="button" disabled={castIsFull} className={cn("mt-3 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-dashed border-sand-300 bg-transparent px-3 py-2.5 text-[12px] font-semibold text-sand-500 transition-colors hover:border-accent-400 hover:bg-accent-100/50 hover:text-accent-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-sand-300 disabled:hover:bg-transparent disabled:hover:text-sand-500", focusRing)} onClick={() => setState((current) => addCharacter(current))}>
+      <Button
+        variant="outline"
+        size="sm"
+        fullWidth
+        className="mt-3 border-dashed"
+        isDisabled={castIsFull}
+        onPress={() => setState((current) => addCharacter(current))}
+      >
         <Plus className="size-3.5" /> Add character
-      </button>
+      </Button>
       {castIsFull ? (
         <p className="mt-2 text-center text-[11px] text-sand-500">Sign in to add more characters.</p>
       ) : null}
@@ -174,15 +182,17 @@ function SortableCastItem({
             </span>
           ) : null}
         </div>
-        <button
-          type="button"
-          className={cn("flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md border border-transparent bg-transparent text-sand-400 transition-all hover:bg-accent-100 hover:text-accent-600", isEditing && "bg-accent-100 text-accent-600", focusRing)}
+        <Button
+          variant="ghost"
+          size="sm"
+          isIconOnly
+          className={cn("shrink-0", isEditing && "bg-accent-100 text-accent-600")}
           aria-expanded={isEditing}
           aria-label="Edit"
-          onClick={() => setState((current) => toggleEditingCharacter(current, character.id))}
+          onPress={() => setState((current) => toggleEditingCharacter(current, character.id))}
         >
           {isEditing ? <X className="size-3.5" /> : <Edit2 className="size-3.5" />}
-        </button>
+        </Button>
       </div>
 
       {isEditing && (
@@ -235,13 +245,9 @@ function SortableCastItem({
                 />
               </label>
               {character.avatar && (
-                <button
-                  type="button"
-                  className={cn("cursor-pointer rounded-lg border border-transparent bg-sand-200/50 px-3 py-1.5 text-[12px] font-semibold text-sand-600 transition-colors hover:bg-sand-200 hover:text-sand-900", focusRing)}
-                  onClick={() => onRemovePhoto(character.id)}
-                >
+                <Button variant="secondary" size="sm" onPress={() => onRemovePhoto(character.id)}>
                   Remove
-                </button>
+                </Button>
               )}
             </div>
             {uploadError ? (
@@ -249,14 +255,15 @@ function SortableCastItem({
             ) : null}
           </div>
 
-          <button
-            type="button"
-            className={cn("flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-transparent bg-red-50 px-3 py-2 text-[12px] font-bold text-red-600 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50", focusRing)}
-            disabled={state.characters.length <= 1}
-            onClick={() => setState((current) => deleteCharacter(current, character.id))}
+          <Button
+            variant="danger-soft"
+            size="sm"
+            fullWidth
+            isDisabled={state.characters.length <= 1}
+            onPress={() => setState((current) => deleteCharacter(current, character.id))}
           >
             <Trash2 className="size-3.5" /> Delete character
-          </button>
+          </Button>
         </motion.div>
       )}
     </li>

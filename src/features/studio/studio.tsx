@@ -3,9 +3,12 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronRight, LayoutDashboard, LogOut, PanelRight, PanelRightClose } from "lucide-react";
+import { ChevronRight, LayoutDashboard, PanelRight, PanelRightClose } from "lucide-react";
 
 import { EditorSidebar } from "./editor/editor-sidebar";
+import { Button } from "@heroui/react";
+
+import { SignOutButton } from "@/features/account/sign-out-button";
 import { ExportButton } from "./export/export-panel";
 import { PhonePreview } from "./phone/phone-preview";
 import { ScriptPanel } from "./editor/script-panel";
@@ -77,15 +80,7 @@ export function Studio({
                   {initialData ? <SaveIndicator status={saveStatus} /> : null}
                   <span className="max-w-48 truncate">Signed in as {authenticatedUser}</span>
                 </div>
-                <form action="/auth/signout" method="post">
-                  <button
-                    type="submit"
-                    className="flex h-9 items-center gap-1.5 rounded-lg border border-sand-200 px-3 text-[12.5px] font-medium text-sand-500 transition-colors hover:bg-sand-50 hover:text-accent-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-                  >
-                    <LogOut className="size-3.5" />
-                    Sign out
-                  </button>
-                </form>
+                <SignOutButton />
               </>
             ) : (
               <div className="relative">
@@ -104,13 +99,15 @@ export function Studio({
             )}
             <div aria-hidden className="mx-1 h-5 w-px bg-sand-200" />
             <ExportButton />
-            <button
-              onClick={() => setState(s => ({ ...s, isRightPanelOpen: !s.isRightPanelOpen }))}
-              className="flex size-9 items-center justify-center rounded-lg border border-sand-200 text-sand-500 transition-colors hover:bg-sand-50 hover:text-sand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            <Button
+              variant="outline"
+              size="sm"
+              isIconOnly
               aria-label={state.isRightPanelOpen ? "Close properties" : "Open properties"}
+              onPress={() => setState(s => ({ ...s, isRightPanelOpen: !s.isRightPanelOpen }))}
             >
               {state.isRightPanelOpen ? <PanelRightClose className="size-4.5" /> : <PanelRight className="size-4.5" />}
-            </button>
+            </Button>
           </div>
         </header>
 

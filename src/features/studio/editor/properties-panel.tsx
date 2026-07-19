@@ -30,7 +30,6 @@ function SenderSection() {
   return (
     <Panel title="Roles" className="relative z-30">
       <div className="mb-4 relative z-20">
-        <p className={miniLabel}>Sending as</p>
         <CustomSelect
           label="Sending as"
           value={state.activeSenderId}
@@ -39,9 +38,8 @@ function SenderSection() {
         />
       </div>
       <div className="relative z-10">
-        <p className={miniLabel}>Whose phone (Blue side)</p>
         <CustomSelect
-          label="Whose phone"
+          label="Whose phone (Blue side)"
           value={state.ownerId}
           options={state.characters.map((char) => ({ value: char.id, label: char.name, color: char.color }))}
           onChange={(ownerId) => setField("ownerId", ownerId)}

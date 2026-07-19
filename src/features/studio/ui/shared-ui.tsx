@@ -1,7 +1,6 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { Label, ListBox, ListBoxItem, Select } from "@heroui/react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { ChevronDown } from "lucide-react";
-import { useId, useState, useRef, useEffect } from "react";
 
 import { focusRing, miniLabel, standardInput } from "@/components/ui/form-styles";
 import type { Character } from "../types";
@@ -97,113 +96,48 @@ export function CustomSelect({
   options: SegmentOption<string>[];
   onChange: (value: string) => void;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const listId = useId();
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    function handleClickOutside(event: MouseEvent) {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
-
-  const selectedOption = options.find((o) => o.value === value) || options[0];
-  const selectedIndex = Math.max(options.findIndex((option) => option.value === value), 0);
-
-  function openAt(index: number) {
-    setActiveIndex(index);
-    setIsOpen(true);
-  }
-
-  function selectOption(index: number) {
-    const option = options[index];
-    if (!option) return;
-    onChange(option.value);
-    setIsOpen(false);
-  }
-
   return (
-    <div className="relative" ref={ref}>
-      <button
-        type="button"
-        role="combobox"
-        className={cn(standardInput, "flex items-center justify-between cursor-pointer focus:ring-accent-500 focus:border-transparent")}
-        onClick={() => setIsOpen((open) => !open)}
-        onKeyDown={(event) => {
-          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-            event.preventDefault();
-            if (!isOpen) {
-              openAt(selectedIndex);
-              return;
-            }
-            const direction = event.key === "ArrowDown" ? 1 : -1;
-            setActiveIndex((index) => (index + direction + options.length) % options.length);
-          } else if (isOpen && (event.key === "Enter" || event.key === " ")) {
-            event.preventDefault();
-            selectOption(activeIndex);
-          } else if (isOpen && event.key === "Escape") {
-            event.preventDefault();
-            setIsOpen(false);
-          }
-        }}
-        aria-label={label}
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-        aria-controls={listId}
-        aria-activedescendant={isOpen ? `${listId}-option-${activeIndex}` : undefined}
-      >
-        <span className="flex items-center gap-2">
-          {selectedOption?.color ? (
-            <span className="size-2.5 shrink-0 rounded-full ring-1 ring-black/10" style={{ backgroundColor: selectedOption.color }} />
-          ) : null}
-          {selectedOption?.label}
-        </span>
-        <ChevronDown className="size-4 text-sand-400" />
-      </button>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className="absolute top-[calc(100%+4px)] left-0 w-full rounded-xl border border-sand-200 bg-white/95 backdrop-blur-xl shadow-xl ring-1 ring-black/5 overflow-hidden z-50"
-          >
-            <ul id={listId} role="listbox" aria-label={label} className="max-h-48 overflow-y-auto p-1 m-0 list-none flex flex-col gap-0.5">
-              {options.map((option, index) => (
-                <li
-                  id={`${listId}-option-${index}`}
-                  key={option.value}
-                  role="option"
-                  aria-selected={option.value === value}
-                  className={cn(
-                    "flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer text-[13px] font-medium transition-colors",
-                    index === activeIndex ? "bg-accent-100/50 text-accent-900" : "hover:bg-sand-50 text-sand-700"
-                  )}
-                  onMouseEnter={() => setActiveIndex(index)}
-                  onClick={() => {
-                    selectOption(index);
-                  }}
-                >
-                  {option.color ? (
-                    <span className="size-2.5 shrink-0 rounded-full ring-1 ring-black/10" style={{ backgroundColor: option.color }} />
-                  ) : null}
-                  {option.label}
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+    <Select
+      selectedKey={value}
+      onSelectionChange={(key) => onChange(String(key))}
+      fullWidth
+    >
+      <Label className={miniLabel}>{label}</Label>
+      <Select.Trigger>
+        <Select.Value>
+          {({ selectedItem }) => {
+            const option = (selectedItem as SegmentOption<string> | null) ?? options[0];
+            return (
+              <span className="flex items-center gap-2 text-sand-900">
+                {option?.color ? (
+                  <span
+                    className="size-2.5 shrink-0 rounded-full ring-1 ring-black/10"
+                    style={{ backgroundColor: option.color }}
+                  />
+                ) : null}
+                {option?.label}
+              </span>
+            );
+          }}
+        </Select.Value>
+        <Select.Indicator />
+      </Select.Trigger>
+      <Select.Popover>
+        <ListBox aria-label={label} items={options}>
+          {(option: SegmentOption<string>) => (
+            <ListBoxItem id={option.value} key={option.value} textValue={option.label} className="text-sand-900">
+              {option.color ? (
+                <span
+                  className="size-2.5 shrink-0 rounded-full ring-1 ring-black/10"
+                  style={{ backgroundColor: option.color }}
+                />
+              ) : null}
+              {option.label}
+            </ListBoxItem>
+          )}
+        </ListBox>
+      </Select.Popover>
+    </Select>
   );
 }
 

@@ -2,11 +2,14 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { Button } from "@heroui/react";
 
 import { isUsernameTaken, signInWithUsername } from "./actions";
 import { confirmPasswordError, passwordError } from "./validate-credentials";
 import { normalizeUsername, usernameError } from "./validate-username";
-import { focusRing, miniLabel, standardInput } from "@/components/ui/form-styles";
+import { PasswordInput } from "./password-input";
+import { TextInput } from "./text-input";
+import { focusRing, miniLabel } from "@/components/ui/form-styles";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -144,42 +147,23 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
 
       <form onSubmit={submitPassword} className="space-y-4">
         {mode === "signin" ? (
-          <label className="block">
-            <span className={miniLabel}>Email or username</span>
-            <input
-              name="identifier"
-              type="text"
-              autoComplete="username"
-              required
-              placeholder="writer@example.com or writer"
-              className={cn(standardInput, "border-sand-200 bg-sand-50 px-3 py-2.5 hover:bg-sand-50")}
-            />
-          </label>
+          <TextInput
+            label="Email or username"
+            name="identifier"
+            autoComplete="username"
+            placeholder="writer@example.com or writer"
+          />
         ) : (
           <>
-            <label className="block">
-              <span className={miniLabel}>Email address</span>
-              <input
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                placeholder="writer@example.com"
-                className={cn(standardInput, "border-sand-200 bg-sand-50 px-3 py-2.5 hover:bg-sand-50")}
-              />
-            </label>
+            <TextInput
+              label="Email address"
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="writer@example.com"
+            />
             <div>
-              <label className="block">
-                <span className={miniLabel}>Username</span>
-                <input
-                  name="username"
-                  type="text"
-                  autoComplete="username"
-                  required
-                  placeholder="writer"
-                  className={cn(standardInput, "border-sand-200 bg-sand-50 px-3 py-2.5 hover:bg-sand-50")}
-                />
-              </label>
+              <TextInput label="Username" name="username" autoComplete="username" placeholder="writer" />
               <span className="mt-1.5 block text-xs text-sand-400">
                 3–20 characters: lowercase letters, numbers, and underscores. Shown instead of your email.
               </span>
@@ -187,17 +171,11 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
           </>
         )}
         <div>
-          <label className="block">
-            <span className={miniLabel}>Password</span>
-            <input
-              name="password"
-              type="password"
-              autoComplete={mode === "signin" ? "current-password" : "new-password"}
-              required
-              placeholder="••••••••"
-              className={cn(standardInput, "border-sand-200 bg-sand-50 px-3 py-2.5 hover:bg-sand-50")}
-            />
-          </label>
+          <PasswordInput
+            label="Password"
+            name="password"
+            autoComplete={mode === "signin" ? "current-password" : "new-password"}
+          />
           {mode === "signup" ? (
             <span className="mt-1.5 block text-xs text-sand-400">
               At least 8 characters, with an uppercase letter, a lowercase letter, and a number.
@@ -205,39 +183,20 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
           ) : null}
         </div>
         {mode === "signup" ? (
-          <label className="block">
-            <span className={miniLabel}>Confirm password</span>
-            <input
-              name="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              required
-              placeholder="••••••••"
-              className={cn(standardInput, "border-sand-200 bg-sand-50 px-3 py-2.5 hover:bg-sand-50")}
-            />
-          </label>
+          <PasswordInput label="Confirm password" name="confirmPassword" autoComplete="new-password" />
         ) : null}
-        <button
-          type="submit"
-          disabled={isBusy}
-          className={cn(
-            "w-full rounded-lg bg-accent-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-600 disabled:cursor-wait disabled:opacity-60",
-            focusRing,
-          )}
-        >
+        <Button type="submit" variant="primary" fullWidth isDisabled={isBusy}>
           {isSubmitting
             ? mode === "signin" ? "Signing in…" : "Creating account…"
             : mode === "signin" ? "Sign in" : "Create account"}
-        </button>
+        </Button>
       </form>
 
-      <button
-        type="button"
-        onClick={toggleMode}
-        className={cn("mt-4 block w-full text-center text-xs text-sand-500 hover:text-sand-800", focusRing)}
-      >
-        {mode === "signin" ? "New here? Create an account" : "Already have an account? Sign in"}
-      </button>
+      <div className="mt-4">
+        <Button variant="ghost" size="sm" fullWidth onPress={toggleMode}>
+          {mode === "signin" ? "New here? Create an account" : "Already have an account? Sign in"}
+        </Button>
+      </div>
 
       <div className="my-6 flex items-center gap-3 text-[10px] font-medium uppercase tracking-widest text-sand-400">
         <span className="h-px flex-1 bg-sand-200" />
@@ -245,18 +204,10 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
         <span className="h-px flex-1 bg-sand-200" />
       </div>
 
-      <button
-        type="button"
-        disabled={isBusy}
-        onClick={signInWithGoogle}
-        className={cn(
-          "flex w-full items-center justify-center gap-3 rounded-lg border border-sand-200 bg-white px-4 py-2.5 text-sm font-medium text-sand-700 transition-colors hover:bg-sand-50 disabled:cursor-wait disabled:opacity-60",
-          focusRing,
-        )}
-      >
+      <Button variant="outline" fullWidth isDisabled={isBusy} onPress={signInWithGoogle}>
         <span aria-hidden="true" className="font-bold text-[#4285f4]">G</span>
         Continue with Google
-      </button>
+      </Button>
 
       <Link href="/" className={cn("mt-6 block text-center text-xs text-sand-500 hover:text-sand-800", focusRing)}>
         Continue without signing in

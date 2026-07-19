@@ -51,7 +51,7 @@ test("Firefox remains settled after signing in through the login form", async ({
 
     await page.goto("/login");
     await page.getByLabel("Email or username").fill(created.email);
-    await page.getByLabel("Password").fill(created.password);
+    await page.getByRole("textbox", { name: "Password", exact: true }).fill(created.password);
 
     navigations.length = 0;
     await page.getByRole("button", { name: "Sign in" }).click();
