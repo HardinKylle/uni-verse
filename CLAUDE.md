@@ -57,7 +57,19 @@ Guardrails, since a bad migration is much harder to undo than a bad code change:
 
 ## Verification
 
-Before considering a change done, run: `npm run lint && npm run typecheck && npm test && npm run test:e2e && npm run build`.
+The full gate is `npm run lint && npm run typecheck && npm test && npm run test:e2e && npm run build`.
+Run it **once, when a piece of work is finished** — before presenting it as done or committing it.
+It is not a per-edit ritual; `test:e2e` alone is ~70s across two browsers.
+
+While iterating, scope verification to what actually changed:
+
+- **Styling only** (CSS, `globals.css` tokens, copy, comments) — `lint`, `typecheck`, `npm test`.
+  Skip e2e.
+- **Component or markup changes** — add the affected spec only:
+  `npx playwright test e2e/<file>.spec.ts --project=chromium`. Treat swapping a native
+  element for a library one as a markup change, not a cosmetic one: it rewrites the
+  accessibility tree, which is exactly what Playwright queries by role and label.
+- **Auth, routing, persistence, or migrations** — run the full suite, not a subset.
 
 ## Runtime note
 
