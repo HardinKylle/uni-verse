@@ -10,18 +10,36 @@ import type { StudioState } from "../types";
 
 export type { SaveStatus };
 
+type EpisodeSnapshot = {
+  title: string;
+  description: string;
+  document: EpisodeDocument;
+};
+
+function episodeSnapshot(state: StudioState): EpisodeSnapshot {
+  return {
+    title: state.episodeTitle,
+    description: state.episodeDescription,
+    document: serializeEpisode(state),
+  };
+}
+
 export function useEpisodeAutosave(
   state: StudioState,
   episode: { id: string; updatedAt: string } | undefined,
 ) {
   const updatedAt = useRef(episode?.updatedAt);
 
-  const save = useCallback(async (snapshot: EpisodeDocument): Promise<SaveOutcome<EpisodeDocument>> => {
+  const save = useCallback(async (snapshot: EpisodeSnapshot): Promise<SaveOutcome<EpisodeSnapshot>> => {
     if (!episode || !updatedAt.current) return { ok: true };
 
     const { data, error } = await getSupabaseBrowserClient()
       .from("episodes")
-      .update({ script: snapshot as unknown as Json })
+      .update({
+        title: snapshot.title,
+        description: snapshot.description,
+        script: snapshot.document as unknown as Json,
+      })
       .eq("id", episode.id)
       .eq("updated_at", updatedAt.current)
       .select("updated_at")
@@ -35,10 +53,10 @@ export function useEpisodeAutosave(
   }, [episode]);
 
   return useAutosave(
-    () => serializeEpisode(state),
+    () => episodeSnapshot(state),
     (snapshot) => JSON.stringify(snapshot),
     save,
-    serializeEpisode(state),
+    episodeSnapshot(state),
     Boolean(episode),
   );
 }

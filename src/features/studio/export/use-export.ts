@@ -151,7 +151,7 @@ export function useExport(
       const lastMessage = state.messages.at(-1);
       const showTrailingStatus = state.status !== "None" && lastMessage?.senderId === state.ownerId;
       const trailingStatusText = showTrailingStatus ? getStatusText(state.status, state.readTime) : null;
-      const baseName = state.projectName.trim() || "episode";
+      const baseName = state.episodeTitle.trim() || "episode";
 
       if (frames.length === 1) {
         const blob = await renderFrameToBlob(

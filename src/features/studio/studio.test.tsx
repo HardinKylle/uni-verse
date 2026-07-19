@@ -29,10 +29,13 @@ describe("Studio", () => {
       },
       projectId: "project-1",
       userId: "user-1",
+      projectTitle: "Test Project",
       episode: { id: "episode-1", updatedAt: "2026-07-06T00:00:00.000Z" },
     }} />);
 
     expect(screen.queryByRole("link", { name: "Sign in" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByText("Test Project")).toBeInTheDocument();
   });
 
   it("warns that demo edits are not carried over only once the demo is edited", async () => {
@@ -131,8 +134,8 @@ describe("Studio", () => {
   it("provides accessible names for editable project and read-time fields", () => {
     render(<Studio />);
 
-    expect(screen.getByRole("textbox", { name: "Project name" })).toBeInTheDocument();
-    expect(screen.getByRole("textbox", { name: "Project description" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Episode title" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Episode description" })).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Read time" })).toBeInTheDocument();
   });
 });

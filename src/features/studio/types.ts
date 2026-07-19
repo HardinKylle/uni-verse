@@ -36,8 +36,8 @@ export type StudioState = {
   readTime: string;
   bubbleColor: BubbleColor;
   draft: string;
-  projectName: string;
-  projectDescription: string;
+  episodeTitle: string;
+  episodeDescription: string;
   isRightPanelOpen: boolean;
   showKeyboard: boolean;
   /** Message ids that force a new export frame to start immediately before them. */
@@ -47,6 +47,7 @@ export type StudioState = {
 export type StudioInitialData = {
   state: StudioState;
   projectId: string;
+  projectTitle: string;
   userId: string;
   episode: { id: string; updatedAt: string };
 };

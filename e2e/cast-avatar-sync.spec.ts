@@ -72,11 +72,15 @@ async function storageObjectExists(admin: ReturnType<typeof createAdminClient>, 
   return data.some((entry) => entry.name === name);
 }
 
-test("cast edits and project metadata autosave only changed rows and survive reload", async ({
+test("cast edits and episode metadata autosave only changed rows and survive reload", async ({
   authenticatedPage: page,
 }) => {
   const characterWrites: { method: string; body: unknown; url: string }[] = [];
+  const episodeWrites: unknown[] = [];
   page.on("request", (request) => {
+    if (request.method() === "PATCH" && request.url().includes("/rest/v1/episodes")) {
+      episodeWrites.push(request.postDataJSON());
+    }
     if (!request.url().includes("/rest/v1/characters")) return;
     const method = request.method();
     if (method === "POST" || method === "DELETE") {
@@ -119,10 +123,15 @@ test("cast edits and project metadata autosave only changed rows and survive rel
   });
 
   const writesAfterRecolor = characterWrites.length;
-  await page.getByLabel("Project name").fill("Renamed Story");
-  await page.getByLabel("Project description").fill("New description");
+  await page.getByLabel("Episode title").fill("Renamed Episode");
+  await page.getByLabel("Episode description").fill("New episode description");
+  await expect(page.getByRole("status", { name: "Save status" })).toHaveText("Saving…", { timeout: 2000 });
   await expect(page.getByRole("status", { name: "Save status" })).toHaveText("Saved", { timeout: 5000 });
-  // Project metadata is a separate slice — it must not trigger character writes.
+  expect(episodeWrites.at(-1)).toMatchObject({
+    title: "Renamed Episode",
+    description: "New episode description",
+  });
+  // Episode metadata is a separate slice — it must not trigger character writes.
   expect(characterWrites.length).toBe(writesAfterRecolor);
 
   // Adding a character writes only the new row.
@@ -178,8 +187,8 @@ test("cast edits and project metadata autosave only changed rows and survive rel
   // after the client-side "Saved" status has settled.
   await page.waitForTimeout(1500);
   await page.reload();
-  await expect(page.getByLabel("Project name")).toHaveValue("Renamed Story");
-  await expect(page.getByLabel("Project description")).toHaveValue("New description");
+  await expect(page.getByLabel("Episode title")).toHaveValue("Renamed Episode");
+  await expect(page.getByLabel("Episode description")).toHaveValue("New episode description");
   await expect(page.getByRole("strong").filter({ hasText: "Jazzy" })).toBeVisible();
   // The drag-reordered sequence itself — not just that both names are present.
   expect(await castNames.allTextContents()).toEqual(namesAfterDrag);
