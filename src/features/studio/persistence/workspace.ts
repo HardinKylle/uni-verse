@@ -23,36 +23,51 @@ function createWorkspaceSeed() {
   };
 }
 
-export async function loadOrCreateWorkspace(userId: string): Promise<StudioInitialData> {
+export async function ensureFirstProject(userId: string): Promise<string | null> {
   const supabase = await createSupabaseServerClient();
   const initialProject = await supabase
     .from("projects")
-    .select("id, title, description")
+    .select("id")
     .eq("owner_id", userId)
     .order("created_at")
     .limit(1)
     .maybeSingle();
-  let project = initialProject.data;
 
   if (initialProject.error) throw initialProject.error;
-  if (!project) {
-    const seed = createWorkspaceSeed();
-    const { error } = await supabase.rpc("bootstrap_workspace", {
-      p_script: serializeEpisode(seed) as unknown as Json,
-      p_characters: seed.characters as unknown as Json,
-    });
-    if (error) throw error;
+  if (initialProject.data) return null;
 
-    const result = await supabase
-      .from("projects")
-      .select("id, title, description")
-      .eq("owner_id", userId)
-      .order("created_at")
-      .limit(1)
-      .single();
-    if (result.error) throw result.error;
-    project = result.data;
-  }
+  const seed = createWorkspaceSeed();
+  const { error } = await supabase.rpc("bootstrap_workspace", {
+    p_script: serializeEpisode(seed) as unknown as Json,
+    p_characters: seed.characters as unknown as Json,
+  });
+  if (error) throw error;
+
+  const result = await supabase
+    .from("projects")
+    .select("id")
+    .eq("owner_id", userId)
+    .order("created_at")
+    .limit(1)
+    .single();
+  if (result.error) throw result.error;
+  return result.data.id;
+}
+
+export async function loadProject(projectId: string, userId: string): Promise<StudioInitialData | null> {
+  const supabase = await createSupabaseServerClient();
+  // RLS already scopes this to the owner; the explicit filter keeps the
+  // guarantee visible in the query rather than resting on policy alone.
+  const projectResult = await supabase
+    .from("projects")
+    .select("id, title")
+    .eq("id", projectId)
+    .eq("owner_id", userId)
+    .maybeSingle();
+
+  if (projectResult.error) throw projectResult.error;
+  if (!projectResult.data) return null;
+  const project = projectResult.data;
 
   const [charactersResult, episodeResult] = await Promise.all([
     supabase
@@ -62,7 +77,7 @@ export async function loadOrCreateWorkspace(userId: string): Promise<StudioIniti
       .order("position"),
     supabase
       .from("episodes")
-      .select("id, script, updated_at")
+      .select("id, title, description, script, updated_at")
       .eq("project_id", project.id)
       .order("position")
       .limit(1)
@@ -84,12 +99,13 @@ export async function loadOrCreateWorkspace(userId: string): Promise<StudioIniti
       : {}),
   }));
   const state = deserializeEpisode(episodeResult.data.script, characters);
-  state.projectName = project.title;
-  state.projectDescription = project.description;
+  state.episodeTitle = episodeResult.data.title;
+  state.episodeDescription = episodeResult.data.description;
 
   return {
     state,
     projectId: project.id,
+    projectTitle: project.title,
     userId,
     episode: {
       id: episodeResult.data.id,

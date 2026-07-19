@@ -28,5 +28,5 @@ test("auth callback failures return to login with an error", async ({ page }) =>
 test("visiting /login while signed in redirects to the workspace", async ({ authenticatedPage }) => {
   await authenticatedPage.goto("/login");
 
-  await expect(authenticatedPage).toHaveURL("/");
+  await expect(authenticatedPage).toHaveURL(/\/p\/[0-9a-f-]+$/);
 });

@@ -83,6 +83,7 @@ export type Database = {
       episodes: {
         Row: {
           created_at: string
+          description: string
           id: string
           position: number
           project_id: string
@@ -92,6 +93,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string
           id?: string
           position?: number
           project_id: string
@@ -101,6 +103,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string
           id?: string
           position?: number
           project_id?: string
@@ -180,11 +183,12 @@ export type Database = {
     }
     Functions: {
       bootstrap_workspace: {
-        Args: {
-          p_characters: Json
-          p_script: Json
-        }
+        Args: { p_characters: Json; p_script: Json }
         Returns: undefined
+      }
+      create_project: {
+        Args: { p_characters: Json; p_script: Json; p_title: string }
+        Returns: string
       }
     }
     Enums: {

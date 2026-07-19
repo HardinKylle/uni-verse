@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { LogOut, PanelRight, PanelRightClose } from "lucide-react";
+import { ChevronRight, LayoutDashboard, LogOut, PanelRight, PanelRightClose } from "lucide-react";
 
 import { EditorSidebar } from "./editor/editor-sidebar";
 import { ExportButton } from "./export/export-panel";
@@ -16,7 +16,6 @@ import { demoState } from "./demo-state";
 import { SaveIndicator } from "./ui/save-indicator";
 import { useEpisodeAutosave, type SaveStatus } from "./persistence/use-episode-autosave";
 import { useCharacterAutosave } from "./persistence/use-character-autosave";
-import { useProjectAutosave } from "./persistence/use-project-autosave";
 import type { StudioInitialData } from "./types";
 
 const STATUS_PRIORITY: SaveStatus[] = ["conflict", "retrying", "saving", "saved"];
@@ -36,8 +35,7 @@ export function Studio({
   const [state, setState] = useState(initialData?.state ?? demoState);
   const episodeStatus = useEpisodeAutosave(state, initialData?.episode);
   const characterStatus = useCharacterAutosave(state, initialData?.projectId);
-  const projectStatus = useProjectAutosave(state, initialData?.projectId);
-  const saveStatus = combineSaveStatus(episodeStatus, characterStatus, projectStatus);
+  const saveStatus = combineSaveStatus(episodeStatus, characterStatus);
   const isAuthenticated = Boolean(authenticatedUser);
   const contextValue = useMemo(
     () => ({ state, setState, isAuthenticated, userId: initialData?.userId }),
@@ -51,9 +49,27 @@ export function Studio({
     <StudioContext.Provider value={contextValue}>
       <main className="flex h-screen min-w-[1600px] flex-col overflow-hidden bg-[#F7F3EF] text-foreground font-sans text-sm p-3 gap-2">
         <header className="relative z-40 flex shrink-0 items-center justify-between rounded-2xl border border-sand-200/70 bg-white py-3 pl-4 pr-2">
-          <Link href="/" className="font-display text-xl leading-none text-sand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 rounded-sm">
-            Kathalis<span className="text-accent-500">.</span>
-          </Link>
+          <nav aria-label="Studio" className="flex min-w-0 items-center gap-2.5">
+            <Link href="/" className="rounded-sm font-display text-xl leading-none text-sand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
+              Kathalis<span className="text-accent-500">.</span>
+            </Link>
+            {initialData ? (
+              <>
+                <div aria-hidden className="h-5 w-px bg-sand-200" />
+                <Link
+                  href="/dashboard"
+                  className="flex h-8 items-center gap-1.5 rounded-md px-2 text-xs font-medium text-sand-500 transition-colors hover:bg-sand-50 hover:text-sand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                >
+                  <LayoutDashboard className="size-3.5" aria-hidden />
+                  Dashboard
+                </Link>
+                <ChevronRight className="size-3.5 shrink-0 text-sand-300" aria-hidden />
+                <span className="max-w-72 truncate font-display text-lg text-sand-800" title={initialData.projectTitle}>
+                  {initialData.projectTitle}
+                </span>
+              </>
+            ) : null}
+          </nav>
           <div className="flex items-center gap-2">
             {authenticatedUser ? (
               <>

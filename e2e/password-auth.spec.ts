@@ -44,7 +44,7 @@ test("a confirmed password user can sign in through the UI", async ({ page }) =>
     await page.getByLabel("Password").fill(password);
     await page.getByRole("button", { name: "Sign in" }).click();
 
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL(/\/p\/[0-9a-f-]+$/);
     await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
   } finally {
     await admin.auth.admin.deleteUser(id);

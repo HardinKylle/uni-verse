@@ -88,8 +88,10 @@ test("an edit made during an in-flight save uses the returned revision", async (
 
 test("a stale tab reports a conflict instead of overwriting", async ({ authenticatedPage: firstPage }) => {
   await firstPage.goto("/");
+  await expect(firstPage).toHaveURL(/\/p\/[0-9a-f-]+$/);
+  const editorUrl = firstPage.url();
   const stalePage = await firstPage.context().newPage();
-  await stalePage.goto("/");
+  await stalePage.goto(editorUrl);
   await waitForStudioHydration(firstPage);
   await waitForStudioHydration(stalePage);
 

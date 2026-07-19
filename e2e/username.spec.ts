@@ -35,7 +35,7 @@ test("a user can sign in with their email or their username", async ({ page }) =
     await page.getByLabel("Password").fill(password);
     await page.getByRole("button", { name: "Sign in" }).click();
 
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL(/\/p\/[0-9a-f-]+$/);
     await expect(page.getByText(`Signed in as @${username}`)).toBeVisible();
     await expect(page.getByText(email)).not.toBeVisible();
 
@@ -47,7 +47,7 @@ test("a user can sign in with their email or their username", async ({ page }) =
     await page.getByLabel("Password").fill(password);
     await page.getByRole("button", { name: "Sign in" }).click();
 
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL("/dashboard");
     await expect(page.getByText(`Signed in as @${username}`)).toBeVisible();
   } finally {
     await admin.auth.admin.deleteUser(id);
@@ -77,7 +77,7 @@ test("a legacy account without a username is prompted once, and a taken name sho
     await page.getByRole("textbox", { name: "Username" }).fill(freshUsername);
     await page.getByRole("button", { name: "Claim username" }).click();
 
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL(/\/p\/[0-9a-f-]+$/);
     await expect(page.getByText(`Signed in as @${freshUsername}`)).toBeVisible();
 
     await page.reload();

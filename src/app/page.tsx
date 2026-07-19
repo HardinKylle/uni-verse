@@ -1,7 +1,8 @@
 import { ClaimUsernameForm } from "@/features/account/claim-username-form";
 import { Studio } from "@/features/studio/studio";
-import { loadOrCreateWorkspace } from "@/features/studio/persistence/workspace";
+import { ensureFirstProject } from "@/features/studio/persistence/workspace";
 import { createSupabaseServerClient, getCurrentUser } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
   const user = await getCurrentUser();
@@ -19,6 +20,6 @@ export default async function Home() {
     );
   }
 
-  const initialData = await loadOrCreateWorkspace(user.id);
-  return <Studio authenticatedUser={`@${profile.data.username}`} initialData={initialData} />;
+  const firstProjectId = await ensureFirstProject(user.id);
+  redirect(firstProjectId ? `/p/${firstProjectId}` : "/dashboard");
 }

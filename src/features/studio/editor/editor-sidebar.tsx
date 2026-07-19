@@ -33,30 +33,30 @@ import type { Character } from "../types";
 export function EditorSidebar() {
   return (
     <aside className="h-full w-[340px] shrink-0 overflow-y-auto border-r border-sand-100 bg-white px-5 pt-5 pb-12 [scrollbar-color:#e8ded7_transparent] [scrollbar-width:thin]">
-      <ProjectInfo />
+      <EpisodeInfo />
       <CastSection />
     </aside>
   );
 }
 
-function ProjectInfo() {
+function EpisodeInfo() {
   const { state, setState } = useStudio();
 
   return (
     <div className="flex flex-col gap-1.5 px-1 pt-2 pb-6 mb-2 border-b border-sand-100">
       <input
-        aria-label="Project name"
+        aria-label="Episode title"
         className={cn(standardInput, "font-display text-[19px] italic text-sand-900 placeholder:text-sand-300 placeholder:not-italic")}
-        value={state.projectName}
-        onChange={(e) => setState((s) => ({ ...s, projectName: e.target.value }))}
-        placeholder="Project Name"
+        value={state.episodeTitle}
+        onChange={(e) => setState((s) => ({ ...s, episodeTitle: e.target.value }))}
+        placeholder="Episode title"
       />
       <input
-        aria-label="Project description"
+        aria-label="Episode description"
         className={cn(standardInput, "text-[12px] font-medium text-sand-500 placeholder:text-sand-300")}
-        value={state.projectDescription}
-        onChange={(e) => setState((s) => ({ ...s, projectDescription: e.target.value }))}
-        placeholder="Add a description..."
+        value={state.episodeDescription}
+        onChange={(e) => setState((s) => ({ ...s, episodeDescription: e.target.value }))}
+        placeholder="Describe this episode..."
       />
     </div>
   );

@@ -91,8 +91,8 @@ export function deserializeEpisode(document: unknown, characters: Character[]): 
     readTime: stringValue(skin.readTime, "10:01 PM"),
     bubbleColor: skin.bubbleColor === "green" ? "green" : "blue",
     draft: "",
-    projectName: "Untitled Episode",
-    projectDescription: "A new story...",
+    episodeTitle: "Untitled Episode",
+    episodeDescription: "",
     isRightPanelOpen: true,
     showKeyboard: false,
     frameBreaks: Array.isArray(doc.frameBreaks)
