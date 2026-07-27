@@ -101,6 +101,7 @@ test("a stale tab reports a conflict instead of overwriting", async ({ authentic
 
   await stalePage.getByRole("textbox", { name: "Message from Jaz" }).first().fill("stale edit");
   await expect(stalePage.getByRole("status", { name: "Save status" }))
-    .toHaveText("Changed elsewhere — reload", { timeout: 5000 });
+    .toHaveText("Changed elsewhere", { timeout: 5000 });
+  await expect(stalePage.getByRole("button", { name: "Reload" })).toBeVisible();
   await stalePage.close();
 });
