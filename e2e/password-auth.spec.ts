@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { createAdminClient, createConfirmedUser, randomUsername } from "./fixtures";
+import { createAdminClient, createConfirmedUser, deleteTestUser, randomUsername } from "./fixtures";
 
 async function attemptSignup(page: Page, { password, confirmPassword }: { password: string; confirmPassword: string }) {
   await page.goto("/login");
@@ -47,6 +47,6 @@ test("a confirmed password user can sign in through the UI", async ({ page }) =>
     await expect(page).toHaveURL(/\/p\/[0-9a-f-]+$/);
     await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
   } finally {
-    await admin.auth.admin.deleteUser(id);
+    await deleteTestUser(admin, id);
   }
 });

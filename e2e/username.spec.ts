@@ -1,7 +1,7 @@
 import { createBrowserClient } from "@supabase/ssr";
 
 import type { Database } from "../src/lib/supabase/database.types";
-import { createAdminClient, createConfirmedUser, env, expect, randomUsername, test } from "./fixtures";
+import { createAdminClient, createConfirmedUser, deleteTestUser, env, expect, randomUsername, test } from "./fixtures";
 
 test("sign-up rejects an invalid or reserved username inline", async ({ page }) => {
   await page.goto("/login");
@@ -51,7 +51,7 @@ test("a user can sign in with their email or their username", async ({ page }) =
     await expect(page).toHaveURL("/dashboard");
     await expect(page.getByText(`Signed in as @${username}`)).toBeVisible();
   } finally {
-    await admin.auth.admin.deleteUser(id);
+    await deleteTestUser(admin, id);
   }
 });
 
@@ -88,8 +88,8 @@ test("a legacy account without a username is prompted once, and a taken name sho
     await expect(page.getByText(`Signed in as @${freshUsername}`)).toBeVisible();
     await expect(page.getByRole("heading", { name: "Choose your username." })).not.toBeVisible();
   } finally {
-    await admin.auth.admin.deleteUser(holder.id);
-    await admin.auth.admin.deleteUser(legacy.id);
+    await deleteTestUser(admin, holder.id);
+    await deleteTestUser(admin, legacy.id);
   }
 });
 
@@ -140,7 +140,7 @@ test("RLS lets a user read and update only their own profile", async () => {
     const bobCheck = await admin.from("profiles").select("username").eq("id", bob.id).maybeSingle();
     expect(bobCheck.data?.username).toBe(bob.username);
   } finally {
-    await admin.auth.admin.deleteUser(alice.id);
-    await admin.auth.admin.deleteUser(bob.id);
+    await deleteTestUser(admin, alice.id);
+    await deleteTestUser(admin, bob.id);
   }
 });

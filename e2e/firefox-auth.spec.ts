@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 
-import { createAdminClient, createConfirmedUser, expect, test } from "./fixtures";
+import { createAdminClient, createConfirmedUser, deleteTestUser, expect, test } from "./fixtures";
 
 function trackNavigationFailures(page: Page) {
   const navigations: string[] = [];
@@ -62,6 +62,6 @@ test("Firefox remains settled after signing in through the login form", async ({
     expect(errors, diagnostic).toEqual([]);
     expect(navigations, diagnostic).toHaveLength(2);
   } finally {
-    await admin.auth.admin.deleteUser(created.id);
+    await deleteTestUser(admin, created.id);
   }
 });
