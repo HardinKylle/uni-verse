@@ -43,6 +43,32 @@ export async function createConfirmedUser(
   return { id: data.user.id, email, password, username };
 }
 
+/**
+ * Deletes a test user *and* anything they uploaded to the avatars bucket.
+ *
+ * Storage objects don't cascade when the owning auth user is removed, so a
+ * bare `deleteUser` leaves every uploaded avatar behind under a folder whose
+ * owner no longer exists — indistinguishable, later, from a real upload the
+ * developer had replaced. Always prefer this over `admin.auth.admin.deleteUser`
+ * in teardown.
+ */
+export async function deleteTestUser(admin: ReturnType<typeof createAdminClient>, userId: string) {
+  const { data: objects, error: listError } = await admin.storage.from("avatars").list(userId, { limit: 1000 });
+  // Teardown must never mask a test's own failure, so storage problems are
+  // reported and swallowed rather than thrown.
+  if (listError) {
+    console.warn(`avatar cleanup: could not list ${userId}: ${listError.message}`);
+  } else if (objects.length > 0) {
+    const paths = objects.filter((object) => object.id).map((object) => `${userId}/${object.name}`);
+    if (paths.length > 0) {
+      const { error: removeError } = await admin.storage.from("avatars").remove(paths);
+      if (removeError) console.warn(`avatar cleanup: could not remove ${userId}: ${removeError.message}`);
+    }
+  }
+
+  await admin.auth.admin.deleteUser(userId);
+}
+
 type AuthFixtures = {
   authenticatedPage: Page;
 };
@@ -80,7 +106,7 @@ export const test = base.extend<AuthFixtures>({
       await runTest(page);
       await page.close();
     } finally {
-      await admin.auth.admin.deleteUser(created.id);
+      await deleteTestUser(admin, created.id);
     }
   },
 });
