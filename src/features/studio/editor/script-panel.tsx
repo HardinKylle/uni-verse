@@ -191,7 +191,7 @@ export function ScriptPanel() {
 
             <AnimatePresence>
               {isDropdownOpen && (
-                <CharacterPopover className="top-[calc(100%+4px)] left-16 w-48">
+                <CharacterPopover className="bottom-[calc(100%+4px)] left-16 w-48">
                   {state.characters.map((char) => (
                     <CharacterOption
                       key={char.id}

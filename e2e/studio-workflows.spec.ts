@@ -69,6 +69,34 @@ test("mentions, multiline messages, and sender selection work from the keyboard"
   await expect(page.getByRole("region", { name: "Message preview" }).getByText(/line one/)).toBeVisible();
 });
 
+test("Writing as dropdown stays visible with more than two characters", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Add character" }).click();
+  await page.getByRole("textbox", { name: "Character name" }).fill("Morgan");
+
+  const timeline = page.getByRole("region", { name: "Chat Script Timeline" });
+  const trigger = timeline.getByRole("button", { name: "Writing as Morgan" });
+  await trigger.click();
+
+  const dropdown = timeline.getByRole("listbox");
+  await expect(dropdown.getByRole("option")).toHaveCount(3);
+  const boxes = await Promise.all([
+    timeline.boundingBox(),
+    trigger.boundingBox(),
+    dropdown.boundingBox(),
+  ]);
+  const [timelineBox, triggerBox, dropdownBox] = boxes;
+  if (!timelineBox || !triggerBox || !dropdownBox) {
+    throw new Error("could not measure the Writing as dropdown");
+  }
+
+  expect(dropdownBox.y).toBeLessThan(triggerBox.y);
+  expect(dropdownBox.y).toBeGreaterThanOrEqual(timelineBox.y);
+  expect(dropdownBox.y + dropdownBox.height).toBeLessThanOrEqual(
+    timelineBox.y + timelineBox.height,
+  );
+});
+
 test("cast and screen settings remain synchronized with the preview", async ({ page }) => {
   await page.goto("/");
   const preview = page.getByRole("region", { name: "Message preview" });
