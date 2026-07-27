@@ -133,27 +133,6 @@ export function addCharacter(state: StudioState): StudioState {
   };
 }
 
-/** No-op when only one character remains — a cast needs at least one sender/owner. */
-export function deleteCharacter(state: StudioState, id: string): StudioState {
-  if (state.characters.length <= 1 || !state.characters.some((character) => character.id === id)) {
-    return state;
-  }
-
-  const characters = state.characters.filter(({ id: characterId }) => characterId !== id);
-  const replacementId = characters[0].id;
-
-  return {
-    ...state,
-    characters,
-    messages: state.messages.map((message) =>
-      message.senderId === id ? { ...message, senderId: replacementId } : message,
-    ),
-    ownerId: state.ownerId === id ? replacementId : state.ownerId,
-    activeSenderId: state.activeSenderId === id ? replacementId : state.activeSenderId,
-    editingCharacterId: null,
-  };
-}
-
 export function toggleEditingCharacter(state: StudioState, id: string): StudioState {
   return { ...state, editingCharacterId: state.editingCharacterId === id ? null : id };
 }

@@ -7,6 +7,11 @@ function episodes(page: import("@playwright/test").Page) {
   return page.getByRole("navigation", { name: "Episodes" });
 }
 
+async function switchEpisode(page: import("@playwright/test").Page, name: string) {
+  await episodes(page).getByRole("button", { name: /Switch episode/ }).click();
+  await page.getByRole("option", { name, exact: true }).click();
+}
+
 function preview(page: import("@playwright/test").Page) {
   return page.getByRole("region", { name: "Message preview" });
 }
@@ -58,7 +63,7 @@ test("a writer creates, renames, and switches between episodes without losing ed
   await scriptTimeline.getByRole("button", { name: "Send message" }).click();
   await page.getByRole("button", { name: "Dark", exact: true }).click();
   await page.getByRole("button", { name: "Green", exact: true }).click();
-  await episodes(page).getByRole("button", { name: "Episode 1", exact: true }).click();
+  await switchEpisode(page, "Episode 1");
 
   await expect(page).toHaveURL(projectUrl);
   await expect(preview(page).getByText("episode one immediate edit", { exact: true })).toBeVisible();
@@ -67,7 +72,7 @@ test("a writer creates, renames, and switches between episodes without losing ed
   await expect(page.getByRole("button", { name: "Blue", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("listitem").locator("strong")).toHaveText(["Jazz", "Kylle"]);
 
-  await episodes(page).getByRole("button", { name: "Second act", exact: true }).click();
+  await switchEpisode(page, "Second act");
   await expect(page).toHaveURL(secondEpisodeUrl);
   await expect(page.getByLabel("Episode title")).toHaveValue("Second act");
   await expect(preview(page).getByText("episode two immediate edit", { exact: true })).toBeVisible();
@@ -106,11 +111,12 @@ test("a save conflict blocks episode switching and keeps the local edit visible"
   const staleTimeline = stalePage.getByRole("region", { name: "Chat Script Timeline" });
   await staleTimeline.getByRole("textbox", { name: "New message" }).fill("unsaved stale edit");
   await staleTimeline.getByRole("button", { name: "Send message" }).click();
-  await episodes(stalePage).getByRole("button", { name: "Episode 2", exact: true }).click();
+  await switchEpisode(stalePage, "Episode 2");
 
   await expect(stalePage).toHaveURL(projectUrl);
   await expect(stalePage.getByRole("status", { name: "Save status" }))
-    .toHaveText("Changed elsewhere — reload", { timeout: 5000 });
+    .toHaveText("Changed elsewhere", { timeout: 5000 });
+  await expect(stalePage.getByRole("button", { name: "Reload" })).toBeVisible();
   await expect(preview(stalePage).getByText("unsaved stale edit", { exact: true })).toBeVisible();
   await stalePage.close();
 });
@@ -141,6 +147,6 @@ test("switching preserves an edit that reverts while another save is in flight",
   await episodes(page).getByRole("button", { name: "New episode" }).click();
 
   await expect(page).toHaveURL(/\?episode=[0-9a-f-]+$/);
-  await episodes(page).getByRole("button", { name: "Episode 1", exact: true }).click();
+  await switchEpisode(page, "Episode 1");
   await expect(page.getByLabel("Episode title")).toHaveValue("Episode 1");
 });

@@ -19,6 +19,7 @@ import { demoState } from "./demo-state";
 import { SaveIndicator } from "./ui/save-indicator";
 import { useEpisodeAutosave, type SaveStatus } from "./persistence/use-episode-autosave";
 import { useCharacterAutosave } from "./persistence/use-character-autosave";
+import { useCharacterDeletion } from "./persistence/use-character-deletion";
 import { useEpisodeNavigation } from "./persistence/use-episode-navigation";
 import type { StudioInitialData } from "./types";
 
@@ -39,6 +40,13 @@ export function Studio({
   const [state, setState] = useState(initialData?.state ?? demoState);
   const episodeAutosave = useEpisodeAutosave(state, initialData?.episode);
   const characterAutosave = useCharacterAutosave(state, initialData?.projectId);
+  const characterDeletion = useCharacterDeletion({
+    state,
+    setState,
+    initialData,
+    episodeAutosave,
+    characterAutosave,
+  });
   const episodeNavigation = useEpisodeNavigation(
     state,
     initialData,
@@ -121,6 +129,7 @@ export function Studio({
         <div className="flex min-h-0 flex-1 gap-3">
           <div className="flex w-[820px] shrink-0 overflow-hidden rounded-2xl border border-sand-200/70 bg-white">
             <EditorSidebar
+              characterDeletion={characterDeletion}
               episode={initialData ? {
                 activeId: initialData.episode.id,
                 episodes: initialData.episodes,
