@@ -5,7 +5,6 @@ import {
   addMessage,
   addTimestamp,
   cycleMessageSender,
-  deleteCharacter,
   deleteMessage,
   duplicateMessage,
   reorderCharacters,
@@ -179,25 +178,6 @@ describe("character actions", () => {
     expect(next.characters.filter((c) => c.color === added.color)).toHaveLength(1);
     expect(next.editingCharacterId).toBe(added.id);
     expect(next.activeSenderId).toBe(added.id);
-  });
-
-  it("deleteCharacter reassigns messages, owner, and active sender", () => {
-    const next = deleteCharacter(makeState({ ownerId: "c1", activeSenderId: "c1" }), "c1");
-
-    expect(next.characters.map((c) => c.id)).toEqual(["c2"]);
-    expect(next.messages.every((m) => m.senderId === "c2")).toBe(true);
-    expect(next.ownerId).toBe("c2");
-    expect(next.activeSenderId).toBe("c2");
-  });
-
-  it("deleteCharacter refuses to remove the last character", () => {
-    const state = makeState({ characters: [{ id: "c1", name: "Jaz", color: "#ff7a7a" }] });
-    expect(deleteCharacter(state, "c1")).toBe(state);
-  });
-
-  it("deleteCharacter ignores an unknown id", () => {
-    const state = makeState({ editingCharacterId: "c1" });
-    expect(deleteCharacter(state, "missing")).toBe(state);
   });
 
   it("toggleEditingCharacter opens then closes editing for a character", () => {

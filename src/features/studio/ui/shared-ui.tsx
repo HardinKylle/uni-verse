@@ -90,16 +90,19 @@ export function CustomSelect({
   value,
   options,
   onChange,
+  isDisabled = false,
 }: {
   label: string;
   value: string;
   options: SegmentOption<string>[];
   onChange: (value: string) => void;
+  isDisabled?: boolean;
 }) {
   return (
     <Select
       selectedKey={value}
       onSelectionChange={(key) => onChange(String(key))}
+      isDisabled={isDisabled}
       fullWidth
     >
       <Label className={miniLabel}>{label}</Label>

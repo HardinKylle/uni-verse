@@ -1,7 +1,7 @@
 "use client";
 
-import { type ChangeEvent, useId } from "react";
-import { Button } from "@heroui/react";
+import { type ChangeEvent, useId, useState } from "react";
+import { AlertDialog, Button } from "@heroui/react";
 import { motion } from "framer-motion";
 import { Upload, Plus, Trash2, Edit2, X, GripVertical, LoaderCircle } from "lucide-react";
 import {
@@ -27,8 +27,19 @@ import { canAddCharacter } from "../limits/anonymous-limits";
 import { useStudio } from "../studio-context";
 import { CHARACTER_PALETTE } from "../constants";
 import { useAvatarUpload } from "../persistence/use-avatar-upload";
-import { addCharacter, deleteCharacter, reorderCharacters, toggleEditingCharacter, updateCharacter } from "./studio-actions";
-import { Panel, Avatar, standardInput, focusRing, miniLabel } from "../ui/shared-ui";
+import type {
+  CharacterDeletionControl,
+  CharacterDeletionPrompt,
+} from "../persistence/use-character-deletion";
+import { addCharacter, reorderCharacters, toggleEditingCharacter, updateCharacter } from "./studio-actions";
+import {
+  Panel,
+  Avatar,
+  CustomSelect,
+  standardInput,
+  focusRing,
+  miniLabel,
+} from "../ui/shared-ui";
 import type { Character, EpisodeSummary } from "../types";
 
 type EpisodeNavigation = {
@@ -40,23 +51,33 @@ type EpisodeNavigation = {
   onOpen: (episodeId: string) => void;
 };
 
-export function EditorSidebar({ episode }: { episode?: EpisodeNavigation }) {
+export function EditorSidebar({
+  characterDeletion,
+  episode,
+}: {
+  characterDeletion: CharacterDeletionControl;
+  episode?: EpisodeNavigation;
+}) {
   return (
     <aside className="h-full w-[340px] shrink-0 overflow-y-auto border-r border-sand-100 bg-white px-5 pt-5 pb-12 [scrollbar-color:#e8ded7_transparent] [scrollbar-width:thin]">
       <EpisodeInfo episode={episode} />
-      <CastSection />
+      <CastSection characterDeletion={characterDeletion} />
     </aside>
   );
 }
 
 function EpisodeInfo({ episode }: { episode?: EpisodeNavigation }) {
+  const { state } = useStudio();
+
   if (!episode) {
     return (
-      <div className="mb-2 flex flex-col gap-1.5 border-b border-sand-100 px-1 pt-2 pb-6">
+      <div className="mb-6 flex flex-col gap-1.5 border-b border-sand-100 px-1 pt-2 pb-6">
         <EpisodeMetadata />
       </div>
     );
   }
+
+  const hasOtherEpisodes = episode.episodes.length > 1;
 
   return (
     <nav aria-label="Episodes" className="mb-6 border-b border-sand-100 pb-6">
@@ -77,36 +98,35 @@ function EpisodeInfo({ episode }: { episode?: EpisodeNavigation }) {
             : <Plus className="size-3.5" aria-hidden />}
         </Button>
       </div>
-      <ol className="m-0 list-none space-y-1 p-0">
-        {episode.episodes.map((item) => {
-          const isActive = item.id === episode.activeId;
-          return (
-            <li key={item.id}>
-              {isActive ? (
-                <div className="rounded-md border border-accent-200 bg-accent-50/40 px-2 py-1.5">
-                  <span className="sr-only">Current episode</span>
-                  <EpisodeTitleInput
-                    className="h-7 border-0 bg-transparent px-1 text-[16px] shadow-none focus:ring-0"
-                  />
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  className={cn(
-                    "flex h-10 w-full items-center rounded-md px-3 text-left font-display text-[15px] text-sand-600 transition-colors hover:bg-sand-50 hover:text-sand-900",
-                    focusRing,
-                  )}
-                  disabled={episode.isPending}
-                  onClick={() => episode.onOpen(item.id)}
-                >
-                  <span className="truncate">{item.title}</span>
-                </button>
-              )}
-            </li>
-          );
-        })}
-      </ol>
-      <EpisodeDescriptionInput className="mt-2" />
+
+      {/* The active episode's title and description live together in one card so
+          the description reads as belonging to the episode being edited — not to
+          the switcher below, which only jumps to a different episode. */}
+      <div className="rounded-lg border border-accent-200 bg-accent-50/40 px-3 py-2.5">
+        <span className="sr-only">Current episode</span>
+        <EpisodeTitleInput className="h-8 border-0 bg-transparent px-0 text-[17px] shadow-none hover:bg-transparent focus:bg-transparent focus:shadow-none focus:ring-0" />
+        <EpisodeDescriptionInput className="border-0 bg-transparent px-0 shadow-none hover:bg-transparent focus:bg-transparent focus:shadow-none focus:ring-0" />
+      </div>
+
+      {/* Compact switcher instead of an unbounded list: scales to any number of
+          episodes without pushing the cast section off-screen. */}
+      {hasOtherEpisodes ? (
+        <div className="mt-3">
+          <CustomSelect
+            label="Switch episode"
+            value={episode.activeId}
+            options={episode.episodes.map((item) => ({
+              value: item.id,
+              label: (item.id === episode.activeId ? state.episodeTitle : item.title) || "Untitled episode",
+            }))}
+            isDisabled={episode.isPending}
+            onChange={(id) => {
+              if (id !== episode.activeId) episode.onOpen(id);
+            }}
+          />
+        </div>
+      ) : null}
+
       {episode.error ? <p role="alert" className="mt-2 text-[11px] font-medium text-red-600">{episode.error}</p> : null}
     </nav>
   );
@@ -160,7 +180,11 @@ function EpisodeDescriptionInput({ className }: { className?: string }) {
   );
 }
 
-function CastSection() {
+function CastSection({
+  characterDeletion,
+}: {
+  characterDeletion: CharacterDeletionControl;
+}) {
   const { state, setState, isAuthenticated, userId } = useStudio();
   const idPrefix = useId();
   const castIsFull = !canAddCharacter(state.characters.length, isAuthenticated);
@@ -202,6 +226,7 @@ function CastSection() {
                 uploadError={uploadErrors[character.id]}
                 onUploadPhoto={uploadPhoto}
                 onRemovePhoto={removePhoto}
+                characterDeletion={characterDeletion}
               />
             ))}
           </ul>
@@ -220,6 +245,18 @@ function CastSection() {
       {castIsFull ? (
         <p className="mt-2 text-center text-[11px] text-sand-500">Sign in to add more characters.</p>
       ) : null}
+      {characterDeletion.error && !characterDeletion.prompt ? (
+        <p role="alert" className="mt-2 text-center text-[11px] font-medium text-red-600">
+          {characterDeletion.error}
+        </p>
+      ) : null}
+      {characterDeletion.prompt ? (
+        <CharacterDeletionDialog
+          key={characterDeletion.prompt.characterId}
+          deletion={characterDeletion}
+          prompt={characterDeletion.prompt}
+        />
+      ) : null}
     </Panel>
   );
 }
@@ -230,17 +267,22 @@ function SortableCastItem({
   uploadError,
   onUploadPhoto,
   onRemovePhoto,
+  characterDeletion,
 }: {
   character: Character;
   idPrefix: string;
   uploadError: string | undefined;
   onUploadPhoto: (id: string, event: ChangeEvent<HTMLInputElement>) => void;
   onRemovePhoto: (id: string) => void;
+  characterDeletion: CharacterDeletionControl;
 }) {
   const { state, setState } = useStudio();
   const isEditing = state.editingCharacterId === character.id;
   const isOwner = state.ownerId === character.id;
   const photoInputId = `${idPrefix}-${character.id}-photo`;
+  const minimumCastDescriptionId = `${idPrefix}-${character.id}-minimum-cast`;
+  const isMinimumCast = state.characters.length <= 2;
+  const isChecking = characterDeletion.checkingCharacterId === character.id;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: character.id,
   });
@@ -356,13 +398,142 @@ function SortableCastItem({
             variant="danger-soft"
             size="sm"
             fullWidth
-            isDisabled={state.characters.length <= 1}
-            onPress={() => setState((current) => deleteCharacter(current, character.id))}
+            isDisabled={isMinimumCast || Boolean(characterDeletion.checkingCharacterId)}
+            aria-describedby={isMinimumCast ? minimumCastDescriptionId : undefined}
+            onPress={() => characterDeletion.requestDelete(character.id)}
           >
-            <Trash2 className="size-3.5" /> Delete character
+            {isChecking
+              ? <LoaderCircle className="size-3.5 animate-spin" aria-hidden />
+              : <Trash2 className="size-3.5" />}
+            {isChecking ? "Checking usage…" : "Delete character"}
           </Button>
+          {isMinimumCast ? (
+            <p
+              id={minimumCastDescriptionId}
+              className="mt-2 text-center text-[11px] text-sand-500"
+            >
+              A story needs at least two characters.
+            </p>
+          ) : null}
         </motion.div>
       )}
     </li>
+  );
+}
+
+function CharacterDeletionDialog({
+  deletion,
+  prompt,
+}: {
+  deletion: CharacterDeletionControl;
+  prompt: CharacterDeletionPrompt;
+}) {
+  const [targetId, setTargetId] = useState(prompt.remainingCharacters[0].id);
+
+  return (
+    <AlertDialog
+      isOpen
+      onOpenChange={(isOpen) => {
+        if (!isOpen) deletion.cancel();
+      }}
+    >
+      <Button className="hidden" aria-hidden />
+      <AlertDialog.Backdrop>
+        <AlertDialog.Container placement="center" size="md">
+          <AlertDialog.Dialog>
+            <Button
+              className="absolute top-3 right-3 z-10"
+              variant="ghost"
+              size="sm"
+              isIconOnly
+              isDisabled={deletion.isApplying}
+              aria-label="Close delete dialog"
+              onPress={deletion.cancel}
+            >
+              <X className="size-4" aria-hidden />
+            </Button>
+            <AlertDialog.Header>
+              <AlertDialog.Heading className="pr-10">
+                Delete {prompt.characterName}?
+              </AlertDialog.Heading>
+            </AlertDialog.Header>
+            <AlertDialog.Body>
+              {prompt.usage.length > 0 ? (
+                <>
+                  <p>
+                    {prompt.characterName} has messages in {prompt.usage.length}{" "}
+                    {prompt.usage.length === 1 ? "episode" : "episodes"}. Choose what happens to them.
+                  </p>
+                  <ul className="my-4 space-y-2">
+                    {prompt.usage.map((episode) => (
+                      <li
+                        key={episode.episodeId}
+                        className="flex items-center justify-between gap-6 rounded-lg bg-sand-50 px-3 py-2"
+                      >
+                        <span className="truncate font-medium text-sand-800">{episode.title}</span>
+                        <span className="shrink-0 text-xs text-sand-500">
+                          {episode.messageCount} {episode.messageCount === 1 ? "message" : "messages"}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
+              {prompt.ownershipEpisodeTitles.length > 0 ? (
+                <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                  {prompt.characterName} is currently &ldquo;me&rdquo; in{" "}
+                  {prompt.ownershipEpisodeTitles.join(", ")}. Deleting them transfers the phone
+                  to {prompt.fallbackOwnerName}, or to the character you choose below. Their
+                  bubbles will switch sides.
+                </p>
+              ) : null}
+              <CustomSelect
+                label="Reassign messages to"
+                value={targetId}
+                options={prompt.remainingCharacters.map((character) => ({
+                  value: character.id,
+                  label: character.name || "Unnamed character",
+                  color: character.color,
+                }))}
+                isDisabled={deletion.isApplying}
+                onChange={setTargetId}
+              />
+              {deletion.error ? (
+                <p role="alert" className="mt-3 text-sm font-medium text-red-600">
+                  {deletion.error}
+                </p>
+              ) : deletion.isApplying ? (
+                <p role="status" className="mt-3 text-sm font-medium text-sand-600">
+                  Updating episodes…
+                </p>
+              ) : null}
+            </AlertDialog.Body>
+            <AlertDialog.Footer>
+              <Button
+                variant="ghost"
+                isDisabled={deletion.isApplying}
+                onPress={deletion.cancel}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger-soft"
+                isDisabled={deletion.isApplying}
+                onPress={deletion.deleteMessages}
+              >
+                Delete messages and character
+              </Button>
+              <Button
+                variant="primary"
+                isDisabled={deletion.isApplying}
+                onPress={() => deletion.reassign(targetId)}
+              >
+                Reassign and delete
+              </Button>
+            </AlertDialog.Footer>
+          </AlertDialog.Dialog>
+        </AlertDialog.Container>
+      </AlertDialog.Backdrop>
+    </AlertDialog>
   );
 }

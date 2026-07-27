@@ -112,16 +112,67 @@ describe("Studio", () => {
     expect(within(preview).getByText("Read 10:01 PM")).toBeInTheDocument();
   });
 
-  it("reassigns ownership when the phone owner is deleted", async () => {
+  it("disables deletion at two characters and explains the minimum", async () => {
     const user = userEvent.setup();
     render(<Studio />);
 
     await user.click(screen.getAllByRole("button", { name: "Edit" })[1]);
+
+    expect(screen.getByRole("button", { name: "Delete character" })).toBeDisabled();
+    expect(screen.getByText("A story needs at least two characters.")).toBeInTheDocument();
+  });
+
+  it("warns about ownership transfer and cancel leaves the cast unchanged", async () => {
+    const user = userEvent.setup();
+    render(<Studio />);
+
+    await user.click(screen.getByRole("button", { name: "Add character" }));
+    await user.click(screen.getAllByRole("button", { name: "Edit" })[1]);
     await user.click(screen.getByRole("button", { name: "Delete character" }));
 
-    expect(screen.queryByText("Kylle")).not.toBeInTheDocument();
-    expect(screen.getByText("This phone")).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Edit" })).toHaveLength(1);
+    const dialog = screen.getByRole("alertdialog", { name: "Delete Kylle?" });
+    expect(within(dialog).getByText(/currently “me”/)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Edit" })).toHaveLength(3);
+    expect(screen.getAllByText("Kylle").length).toBeGreaterThan(0);
+  });
+
+  it("closes the character deletion dialog from its header", async () => {
+    const user = userEvent.setup();
+    render(<Studio />);
+
+    await user.click(screen.getByRole("button", { name: "Add character" }));
+    await user.click(screen.getAllByRole("button", { name: "Edit" })[1]);
+    await user.click(screen.getByRole("button", { name: "Delete character" }));
+
+    const dialog = screen.getByRole("alertdialog", { name: "Delete Kylle?" });
+    await user.click(within(dialog).getByRole("button", { name: "Close delete dialog" }));
+
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Edit" })).toHaveLength(3);
+  });
+
+  it("applies the chosen reassignment before closing the usage dialog", async () => {
+    const user = userEvent.setup();
+    render(<Studio />);
+
+    await user.click(screen.getByRole("button", { name: "Add character" }));
+    await user.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+    await user.click(screen.getByRole("button", { name: "Delete character" }));
+
+    const dialog = screen.getByRole("alertdialog", { name: "Delete Jaz?" });
+    const reassignment = within(dialog).getByRole("button", {
+      name: /Reassign messages to/,
+    });
+    await user.click(reassignment);
+    await user.click(screen.getByRole("option", { name: "Kylle" }));
+    await user.click(within(dialog).getByRole("button", { name: "Reassign and delete" }));
+
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Edit" })).toHaveLength(2);
+    expect(screen.getAllByRole("textbox", { name: "Message from Kylle" })).toHaveLength(4);
   });
 
   it("supports keyboard selection in properties dropdowns", async () => {
