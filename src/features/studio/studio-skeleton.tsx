@@ -1,5 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { PANEL_WIDTH, PHONE_SCREEN_WIDTH } from "./constants";
+import { SmallScreenNotice } from "./ui/small-screen-notice";
 
 /**
  * Instant loading state for /p/[projectId]. Mirrors the Studio shell —
@@ -8,10 +9,12 @@ import { PANEL_WIDTH, PHONE_SCREEN_WIDTH } from "./constants";
  */
 export function StudioSkeleton() {
   return (
-    <main
-      aria-busy="true"
-      className="flex h-screen min-w-[1600px] flex-col overflow-hidden bg-[#F7F3EF] text-foreground font-sans text-sm p-3 gap-2"
-    >
+    <>
+      <SmallScreenNotice />
+      <main
+        aria-busy="true"
+        className="hidden h-screen flex-col overflow-hidden bg-[#F7F3EF] text-foreground font-sans text-sm p-3 gap-2 lg:flex"
+      >
       <p role="status" className="sr-only">
         Loading your story…
       </p>
@@ -31,8 +34,8 @@ export function StudioSkeleton() {
       </header>
 
       <div className="flex min-h-0 flex-1 gap-3">
-        <div className="flex w-[820px] shrink-0 overflow-hidden rounded-2xl border border-sand-200/70 bg-white">
-          <div className="h-full w-[340px] shrink-0 border-r border-sand-100 px-5 pt-5">
+        <div className="flex min-w-0 flex-1 overflow-hidden rounded-2xl border border-sand-200/70 bg-white">
+          <div className="h-full w-[288px] shrink-0 border-r border-sand-100 px-5 pt-5 2xl:w-[340px]">
             <Skeleton className="h-6 w-48" />
             <Skeleton className="mt-3 h-4 w-32" />
             <div className="mt-8 space-y-2">
@@ -44,7 +47,7 @@ export function StudioSkeleton() {
               ))}
             </div>
           </div>
-          <div className="flex-1 px-5 pt-7">
+          <div className="min-w-0 flex-1 px-5 pt-7">
             <Skeleton className="h-4 w-28" />
             <div className="mt-6 space-y-4">
               {[0, 1, 2, 3].map((row) => (
@@ -69,7 +72,8 @@ export function StudioSkeleton() {
             ))}
           </div>
         </div>
-      </div>
-    </main>
+        </div>
+      </main>
+    </>
   );
 }

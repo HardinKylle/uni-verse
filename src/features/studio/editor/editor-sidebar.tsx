@@ -59,7 +59,7 @@ export function EditorSidebar({
   episode?: EpisodeNavigation;
 }) {
   return (
-    <aside className="h-full w-[340px] shrink-0 overflow-y-auto border-r border-sand-100 bg-white px-5 pt-5 pb-12 [scrollbar-color:#e8ded7_transparent] [scrollbar-width:thin]">
+    <aside className="h-full w-[240px] shrink-0 overflow-y-auto border-r border-sand-100 bg-white px-4 pt-5 pb-12 [scrollbar-color:#e8ded7_transparent] [scrollbar-width:thin] xl:w-[288px] 2xl:w-[340px]">
       <EpisodeInfo episode={episode} />
       <CastSection characterDeletion={characterDeletion} />
     </aside>

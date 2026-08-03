@@ -109,13 +109,13 @@ export function ScriptPanel() {
   }
 
   return (
-    <section className="relative flex h-full w-[480px] shrink-0 flex-col border-r border-sand-100 bg-white" aria-labelledby="script-title">
-      <div className="flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md z-10 sticky top-0">
+    <section className="relative flex h-full min-w-0 flex-1 flex-col border-r border-sand-100 bg-white" aria-labelledby="script-title">
+      <div className="flex items-center justify-between px-4 py-4 bg-white/80 backdrop-blur-md z-10 sticky top-0 xl:px-6">
         <h2 className={panelTitle} id="script-title">Chat Script Timeline</h2>
         <span className="rounded-full bg-accent-100 px-2.5 py-0.5 font-mono text-[11px] font-medium text-accent-800">{state.messages.length}</span>
       </div>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-6 pt-4 pb-[110px] bg-accent-100/10 [scrollbar-color:#e8ded7_transparent] [scrollbar-width:thin]">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-[128px] bg-accent-100/10 [scrollbar-color:#e8ded7_transparent] [scrollbar-width:thin] xl:px-6">
         {state.messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center opacity-70">
             <div className="w-12 h-12 rounded-full bg-accent-100/50 flex items-center justify-center mb-4 ring-1 ring-accent-200/50">
@@ -147,7 +147,7 @@ export function ScriptPanel() {
         )}
       </div>
 
-      <div className="absolute bottom-6 left-1/2 w-[90%] -translate-x-1/2">
+      <div className="absolute right-4 bottom-4 left-4">
         <AnimatePresence>
           {mentionQuery !== null && (
             <CharacterPopover
@@ -208,11 +208,11 @@ export function ScriptPanel() {
             </AnimatePresence>
           </div>
 
-          <div className="flex items-end gap-2">
+          <div className="flex flex-col gap-2">
             <textarea
               id="new-message"
               aria-label="New message"
-              className={cn("max-h-32 min-h-[44px] w-full resize-none rounded-xl border border-transparent bg-sand-100/50 px-3.5 py-3 text-[13px] leading-relaxed text-sand-900 placeholder:text-sand-400 transition-colors focus:border-sand-300 focus:bg-white focus:outline-none [scrollbar-width:none]", focusRing)}
+              className={cn("max-h-32 min-h-[48px] w-full resize-none rounded-xl border border-transparent bg-sand-100/50 px-3.5 py-3 text-[13px] leading-relaxed text-sand-900 placeholder:text-sand-400 transition-colors focus:border-sand-300 focus:bg-white focus:outline-none [scrollbar-width:none]", focusRing)}
               rows={Math.min(4, Math.max(1, state.draft.split('\n').length))}
               value={state.draft}
               placeholder="Type @ to switch sender..."
@@ -236,27 +236,29 @@ export function ScriptPanel() {
               }}
               onKeyDown={handleDraftKeyDown}
             />
-            <Button
-              variant="primary"
-              isIconOnly
-              className="size-11 shrink-0"
-              isDisabled={!state.draft.trim()}
-              aria-label="Send message"
-              onPress={() => setState((current) => addMessage(current))}
-            >
-              <Send className="size-4" />
-            </Button>
-            <span title="Add timestamp divider" className="shrink-0">
+            <div className="flex justify-end gap-2">
               <Button
-                variant="secondary"
+                variant="primary"
                 isIconOnly
-                className="size-11"
-                aria-label="Add timestamp"
-                onPress={() => setState((current) => addTimestamp(current))}
+                className="size-11 shrink-0"
+                isDisabled={!state.draft.trim()}
+                aria-label="Send message"
+                onPress={() => setState((current) => addMessage(current))}
               >
-                <Clock className="size-4" />
+                <Send className="size-4" />
               </Button>
-            </span>
+              <span title="Add timestamp divider" className="shrink-0">
+                <Button
+                  variant="secondary"
+                  isIconOnly
+                  className="size-11"
+                  aria-label="Add timestamp"
+                  onPress={() => setState((current) => addTimestamp(current))}
+                >
+                  <Clock className="size-4" />
+                </Button>
+              </span>
+            </div>
           </div>
         </div>
       </div>
