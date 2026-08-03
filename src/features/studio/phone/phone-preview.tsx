@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, memo, useState, type CSSProperties } from "react";
+import { useEffect, useRef, memo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { cn } from "@/lib/utils";
@@ -89,6 +89,33 @@ export function PhonePreview() {
   const isContactTyping = state.activeSenderId !== owner.id && state.draft.trim() !== "";
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const previewRef = useRef<HTMLElement>(null);
+  const [phoneScale, setPhoneScale] = useState(0.72);
+
+  useEffect(() => {
+    const preview = previewRef.current;
+    if (!preview) return;
+
+    const updatePhoneScale = () => {
+      const { width, height } = preview.getBoundingClientRect();
+      const availableWidth = width - 56;
+      const availableHeight = height - 56;
+      if (availableWidth <= 0 || availableHeight <= 0) return;
+
+      const nextScale = Math.max(
+        0.1,
+        Math.min(0.85, availableWidth / 375, availableHeight / 812),
+      );
+      setPhoneScale((current) => (Math.abs(current - nextScale) < 0.001 ? current : nextScale));
+    };
+
+    updatePhoneScale();
+    if (typeof ResizeObserver === "undefined") return;
+
+    const observer = new ResizeObserver(updatePhoneScale);
+    observer.observe(preview);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -107,16 +134,13 @@ export function PhonePreview() {
 
   return (
     <section
+      ref={previewRef}
       className="relative flex h-full min-w-0 flex-1 items-center justify-center overflow-hidden bg-sand-50 bg-[linear-gradient(to_right,#77334412_1px,transparent_1px),linear-gradient(to_bottom,#77334412_1px,transparent_1px)] bg-[size:24px_24px] p-7"
-      style={{
-        containerType: "size",
-        "--phone-scale": "max(0.1, min(0.85, calc((100cqh - 3.5rem) / 812px), calc((100cqw - 3.5rem) / 375px)))",
-      } as CSSProperties}
       aria-label="Message preview"
     >
       <div
         className="relative h-[812px] w-[375px] shrink-0 origin-center rounded-[50px] bg-[#0b0b0c] p-[8px] shadow-[0_34px_70px_-24px_rgba(0,0,0,0.55),inset_0_0_0_2px_#26262a] transition-transform"
-        style={{ transform: "scale(var(--phone-scale))" }}
+        style={{ transform: `scale(${phoneScale})` }}
       >
         <div
           className={cn("relative flex h-full flex-col overflow-hidden rounded-[42px] bg-[var(--screen-bg)] font-['SF_Pro_Text'] text-[var(--header-text)] transition-colors duration-250", state.dark ? darkTheme : lightTheme, state.bubbleColor === "green" && "[--outgoing:#28cd41]")}
