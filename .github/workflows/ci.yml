@@ -39,11 +39,24 @@ jobs:
       - name: Run unit tests
         run: npm test
 
+      # NEXT_PUBLIC_* are inlined into the bundle at build time, so the build
+      # needs them even though it does not talk to Supabase itself.
       - name: Build
         run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
+      # The authenticated specs sign in real users against the dev Supabase
+      # project and exercise real RLS, so they need the service-role key too.
+      # Scoped to this step rather than the job so npm lifecycle scripts never
+      # see it.
       - name: Run browser tests
         run: npm run test:e2e
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
