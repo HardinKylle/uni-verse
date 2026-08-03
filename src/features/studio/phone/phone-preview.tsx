@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, memo, useState } from "react";
+import { useEffect, useRef, memo, useState, type CSSProperties } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { cn } from "@/lib/utils";
@@ -106,8 +106,18 @@ export function PhonePreview() {
   useOutgoingBubbleGradient(scrollRef);
 
   return (
-    <section className="relative flex h-full min-w-0 flex-1 items-center justify-center overflow-auto bg-sand-50 bg-[linear-gradient(to_right,#77334412_1px,transparent_1px),linear-gradient(to_bottom,#77334412_1px,transparent_1px)] bg-[size:24px_24px] p-7" aria-label="Message preview">
-      <div className="relative h-[812px] w-[375px] shrink-0 origin-center scale-[0.85] rounded-[50px] bg-[#0b0b0c] p-[8px] shadow-[0_34px_70px_-24px_rgba(0,0,0,0.55),inset_0_0_0_2px_#26262a] transition-transform">
+    <section
+      className="relative flex h-full min-w-0 flex-1 items-center justify-center overflow-hidden bg-sand-50 bg-[linear-gradient(to_right,#77334412_1px,transparent_1px),linear-gradient(to_bottom,#77334412_1px,transparent_1px)] bg-[size:24px_24px] p-7"
+      style={{
+        containerType: "size",
+        "--phone-scale": "max(0.1, min(0.85, calc((100cqh - 3.5rem) / 812px), calc((100cqw - 3.5rem) / 375px)))",
+      } as CSSProperties}
+      aria-label="Message preview"
+    >
+      <div
+        className="relative h-[812px] w-[375px] shrink-0 origin-center rounded-[50px] bg-[#0b0b0c] p-[8px] shadow-[0_34px_70px_-24px_rgba(0,0,0,0.55),inset_0_0_0_2px_#26262a] transition-transform"
+        style={{ transform: "scale(var(--phone-scale))" }}
+      >
         <div
           className={cn("relative flex h-full flex-col overflow-hidden rounded-[42px] bg-[var(--screen-bg)] font-['SF_Pro_Text'] text-[var(--header-text)] transition-colors duration-250", state.dark ? darkTheme : lightTheme, state.bubbleColor === "green" && "[--outgoing:#28cd41]")}
           data-bubble={state.bubbleColor}

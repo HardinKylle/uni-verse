@@ -5,18 +5,21 @@ test.use({ viewport: { width: 1600, height: 900 } });
 test.describe("narrow desktop viewport", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  test("preserves the phone preview instead of crushing it", async ({ page }) => {
+  test("fits the viewport without horizontal scroll, keeping the phone preview usable", async ({ page }) => {
     await page.goto("/");
     const metrics = await page.evaluate(() => {
       const preview = document.querySelector<HTMLElement>('[aria-label="Message preview"]');
       return {
         documentWidth: document.documentElement.scrollWidth,
+        viewportWidth: document.documentElement.clientWidth,
         previewWidth: preview?.getBoundingClientRect().width ?? 0,
       };
     });
 
-    expect(metrics.documentWidth).toBeGreaterThanOrEqual(1600);
-    expect(metrics.previewWidth).toBeGreaterThanOrEqual(390);
+    // The studio canvas must fit the small-laptop viewport — no page-level horizontal scroll.
+    expect(metrics.documentWidth).toBeLessThanOrEqual(metrics.viewportWidth);
+    // The phone preview column stays wide enough to show the 375px device without being crushed.
+    expect(metrics.previewWidth).toBeGreaterThanOrEqual(375);
     await expect(page.getByRole("region", { name: "Message preview" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Export", exact: true })).toBeVisible();
   });

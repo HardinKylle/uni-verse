@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { StudioSkeleton } from "./studio-skeleton";
@@ -14,7 +14,7 @@ describe("StudioSkeleton", () => {
   it("keeps the wordmark visible while the project loads", () => {
     render(<StudioSkeleton />);
 
-    expect(screen.getByText(/kathalis/i)).toBeInTheDocument();
+    expect(within(screen.getByRole("main")).getByText(/kathalis/i)).toBeInTheDocument();
   });
 
   it("exposes no interactive controls before data arrives", () => {

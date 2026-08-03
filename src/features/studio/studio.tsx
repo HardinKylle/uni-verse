@@ -17,6 +17,7 @@ import { StudioContext } from "./studio-context";
 import { PANEL_WIDTH } from "./constants";
 import { demoState } from "./demo-state";
 import { SaveIndicator } from "./ui/save-indicator";
+import { SmallScreenNotice } from "./ui/small-screen-notice";
 import { useEpisodeAutosave, type SaveStatus } from "./persistence/use-episode-autosave";
 import { useCharacterAutosave } from "./persistence/use-character-autosave";
 import { useCharacterDeletion } from "./persistence/use-character-deletion";
@@ -65,7 +66,8 @@ export function Studio({
 
   return (
     <StudioContext.Provider value={contextValue}>
-      <main className="flex h-screen min-w-[1600px] flex-col overflow-hidden bg-[#F7F3EF] text-foreground font-sans text-sm p-3 gap-2">
+      <SmallScreenNotice />
+      <main className="hidden h-screen flex-col overflow-hidden bg-[#F7F3EF] text-foreground font-sans text-sm p-3 gap-2 lg:flex">
         <header className="relative z-40 flex shrink-0 items-center justify-between rounded-2xl border border-sand-200/70 bg-white py-3 pl-4 pr-2">
           <nav aria-label="Studio" className="flex min-w-0 items-center gap-2.5">
             <Link href="/" className="rounded-sm font-display text-xl leading-none text-sand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
@@ -112,12 +114,13 @@ export function Studio({
                 ) : null}
               </div>
             )}
-            <div aria-hidden className="mx-1 h-5 w-px bg-sand-200" />
+            <div aria-hidden className="mx-1 hidden h-5 w-px bg-sand-200 xl:block" />
             <ExportButton />
             <Button
               variant="outline"
               size="sm"
               isIconOnly
+              className="hidden xl:inline-flex"
               aria-label={state.isRightPanelOpen ? "Close properties" : "Open properties"}
               onPress={() => setState(s => ({ ...s, isRightPanelOpen: !s.isRightPanelOpen }))}
             >
@@ -127,7 +130,7 @@ export function Studio({
         </header>
 
         <div className="flex min-h-0 flex-1 gap-3">
-          <div className="flex w-[820px] shrink-0 overflow-hidden rounded-2xl border border-sand-200/70 bg-white">
+          <div className="flex min-w-0 flex-[1.25] overflow-hidden rounded-2xl border border-sand-200/70 bg-white">
             <EditorSidebar
               characterDeletion={characterDeletion}
               episode={initialData ? {
@@ -150,7 +153,7 @@ export function Studio({
               opacity: state.isRightPanelOpen ? 1 : 0
             }}
             transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-            className="flex shrink-0 overflow-hidden rounded-2xl border border-sand-200/70 bg-white"
+            className="hidden shrink-0 overflow-hidden rounded-2xl border border-sand-200/70 bg-white xl:flex"
           >
             <div className="shrink-0 h-full" style={{ width: PANEL_WIDTH }}>
               <PropertiesPanel />
