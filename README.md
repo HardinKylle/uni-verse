@@ -32,7 +32,7 @@ progress coherently, across a body of work that grows over many stories.
 | UI | Native HTML; HeroUI v3 when a generic component is needed |
 | Creative UI | Not used yet |
 | Forms | Native form handling; React Hook Form + Zod if complex forms are needed |
-| Backend | Not used (Phase 1 is client-side only; Supabase planned for Phase 2) |
+| Backend | Supabase (Postgres + Auth + Storage); RLS is the sole authorization boundary |
 | Testing | Vitest, Testing Library, Playwright |
 | Deployment | Vercel |
 
@@ -96,18 +96,28 @@ npm run build
 
 Also verify the primary user path at desktop and mobile widths with no browser console errors.
 
+`npm run test:e2e` requires the dev Supabase project configured in `.env.local`:
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` (the last
+is used only to create and delete disposable test users). Playwright fails fast with an actionable
+message if these are missing or the project is unreachable. The other gate steps need no backend.
+
 ## Deployment
 
-Not yet deployed. Target is Vercel; required environment variables (none in Phase 1) will be documented
-in the deployment platform, not with their values here.
+Not yet deployed. Target is Vercel. Production runs against a **separate** Supabase project (stood up
+from the committed migrations when launch is ready — see `CLAUDE.md`); the current repo is linked to a
+dev-only project. Required environment variables (`NEXT_PUBLIC_SUPABASE_URL`,
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) are set in the deployment platform, not
+with their values here.
 
 ## Decisions and limitations
 
-- Phase 1 is deliberately client-side only: no accounts, no backend, no cloud sync. Projects/cast/
-  conversations persist in the browser plus a backup file export/import. Data is modeled as structured
-  documents so later phases can move it into Supabase without remodeling.
-- Accounts, cloud sync, additional platform skins, replies/quotes, image messages, a timestamp engine,
-  and live playback mode are out of scope until Phase 2/3.
+- Phase 2 adds accounts and Supabase-backed cloud persistence while keeping full anonymous demo mode:
+  anyone can use the studio in-browser without an account, and creating one unlocks autosave, a
+  multi-project dashboard, episodes, a shared cast with uploaded avatars, and uncapped export. The
+  anonymous tier carries deliberate limits (export capped at 3 frames, cast capped at 3 characters,
+  frame shape locked) as honest reasons to sign up.
+- Additional platform skins, replies/quotes, image messages, a timestamp engine, live playback mode,
+  and Phase 3's public reader pages and social features remain out of scope.
 
 ## Author
 

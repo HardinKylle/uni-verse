@@ -1,15 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { PNG } from "pngjs";
-import { createAdminClient, expect, test } from "./fixtures";
+import { createAdminClient, expect, storageObjectExists, test, TINY_PNG } from "./fixtures";
 import type { Page } from "@playwright/test";
 
 test.use({ viewport: { width: 1600, height: 900 } });
 test.setTimeout(60_000);
-
-const TINY_PNG = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-  "base64",
-);
 
 // Mirrors workspace-persistence.spec.ts's dance: toggling the properties panel
 // round-trip proves the client has hydrated before interacting further.
@@ -56,20 +51,6 @@ function avatarPathFromBackground(background: string): string {
   const match = background.match(/\/avatars\/([^")]+)/);
   if (!match) throw new Error(`could not parse an avatar storage path from "${background}"`);
   return match[1];
-}
-
-// `.list()`, not `.download()`: the storage GET/download endpoint sits behind
-// a CDN that honors the object's `Cache-Control: max-age=3600`, so once a
-// path has been downloaded, a later `.download()` of that same path can keep
-// serving the cached bytes well after the object is actually deleted (verified
-// manually). `.list()` reflects real bucket metadata and isn't cached that way.
-async function storageObjectExists(admin: ReturnType<typeof createAdminClient>, path: string): Promise<boolean> {
-  const lastSlash = path.lastIndexOf("/");
-  const folder = lastSlash === -1 ? "" : path.slice(0, lastSlash);
-  const name = lastSlash === -1 ? path : path.slice(lastSlash + 1);
-  const { data, error } = await admin.storage.from("avatars").list(folder, { search: name });
-  if (error) throw error;
-  return data.some((entry) => entry.name === name);
 }
 
 test("cast edits and episode metadata autosave only changed rows and survive reload", async ({

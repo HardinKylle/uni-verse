@@ -1,5 +1,11 @@
 import type { StudioState } from "./types";
 
+// TODO(pre-production content): this demo copy — character names, message text,
+// episode title/description — doubles as anonymous onboarding and e2e ground
+// truth, and seeds every new account's first episode via bootstrap_workspace.
+// It is placeholder writing to revisit before a production environment exists
+// (PRD Further Notes). Changing the character names or message text here will
+// break the specs that assert against them (e.g. "Message from Jaz").
 export const demoState: StudioState = {
   dark: false,
   characters: [

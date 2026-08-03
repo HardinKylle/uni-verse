@@ -5,13 +5,24 @@ import { readFileSync } from "node:fs";
 
 import type { Database } from "../src/lib/supabase/database.types";
 
-export function env(name: string) {
+/** Resolves an env var from the process env or `.env.local`, or `undefined` if absent. */
+export function tryEnv(name: string): string | undefined {
   if (process.env[name]) return process.env[name]!;
-  const line = readFileSync(".env.local", "utf8")
-    .split(/\r?\n/)
-    .find((candidate) => candidate.startsWith(`${name}=`));
-  if (!line) throw new Error(`${name} is required for authenticated e2e tests`);
+  let file: string;
+  try {
+    file = readFileSync(".env.local", "utf8");
+  } catch {
+    return undefined;
+  }
+  const line = file.split(/\r?\n/).find((candidate) => candidate.startsWith(`${name}=`));
+  if (!line) return undefined;
   return line.slice(name.length + 1).replace(/^['"]|['"]$/g, "");
+}
+
+export function env(name: string) {
+  const value = tryEnv(name);
+  if (value === undefined) throw new Error(`${name} is required for authenticated e2e tests`);
+  return value;
 }
 
 export function createAdminClient() {
@@ -24,6 +35,33 @@ export function createAdminClient() {
 
 export function randomUsername() {
   return `pw_${crypto.randomUUID().replace(/-/g, "").slice(0, 12)}`;
+}
+
+/** A 1x1 opaque-black PNG — the smallest valid avatar upload the specs need. */
+export const TINY_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+  "base64",
+);
+
+/**
+ * Whether an object exists in the avatars bucket, by real bucket metadata.
+ *
+ * Uses `.list()`, not `.download()`: the storage GET/download endpoint sits
+ * behind a CDN that honors the object's `Cache-Control: max-age=3600`, so once
+ * a path has been downloaded a later `.download()` can keep serving cached
+ * bytes well after the object is deleted (verified manually). `.list()`
+ * reflects real bucket metadata and isn't cached that way.
+ */
+export async function storageObjectExists(
+  admin: ReturnType<typeof createAdminClient>,
+  path: string,
+): Promise<boolean> {
+  const lastSlash = path.lastIndexOf("/");
+  const folder = lastSlash === -1 ? "" : path.slice(0, lastSlash);
+  const name = lastSlash === -1 ? path : path.slice(lastSlash + 1);
+  const { data, error } = await admin.storage.from("avatars").list(folder, { search: name });
+  if (error) throw error;
+  return data.some((entry) => entry.name === name);
 }
 
 export async function createConfirmedUser(
