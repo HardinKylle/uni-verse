@@ -9,6 +9,13 @@ mode. Phase 1 stored projects, cast, and conversations only in browser memory. P
 pages and social features. Do not build ahead of
 the current phase's scope.
 
+Phase 2 feature work is complete: auth (email+password and Google), cloud autosave, multi-project
+dashboard, episodes, shared cast + avatars, character-deletion safety, and cross-user isolation all
+ship and are covered end-to-end. What remains for Phase 2 is deliberately deferred to launch readiness,
+not this phase's scope: standing up a **production** Supabase project (from the committed migrations —
+see Database migrations) and Vercel deployment. Until then everything runs against the single dev
+Supabase project.
+
 ## Stack
 
 Follows [`project-kit`](https://github.com/HardinKylle/project-kit)'s `web-app` profile: Next.js App
@@ -55,11 +62,38 @@ Guardrails, since a bad migration is much harder to undo than a bad code change:
 - **Never repoint the CLI or env vars at a production project** without the developer doing that step
   themselves — this repo's Supabase link should only ever mean the dev project.
 
+**Standing up production later (deferred, not this phase).** When launch readiness arrives, the same
+committed migrations reproduce the whole schema on a fresh project — no archaeology. The developer
+does the repointing steps by hand; an agent never touches a prod project. Outline:
+
+1. Create a second Supabase project (this becomes prod); it is separate from the dev project this repo
+   is linked to.
+2. `supabase link --project-ref <prod-ref>`, then `supabase db push` to apply `supabase/migrations/`
+   in order. Show the full SQL and confirm first, exactly as for dev.
+3. Configure Auth on the prod project: email+password with confirmation, Google OAuth credentials, and
+   the site/redirect URLs for the deployed origin.
+4. Set the deployment's env vars (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+   `SUPABASE_SERVICE_ROLE_KEY`) to the prod project's values in Vercel — never committed here.
+5. Re-link the local CLI back to dev afterward so day-to-day work never points at prod.
+
 ## Verification
 
 The full gate is `npm run lint && npm run typecheck && npm test && npm run test:e2e && npm run build`.
 Run it **once, when a piece of work is finished** — before presenting it as done or committing it.
 It is not a per-edit ritual; `test:e2e` alone is ~70s across two browsers.
+
+**Required environment for the gate.** `npm run test:e2e` needs the dev Supabase project configured —
+the authenticated specs (auth, persistence, cast sync, episodes, cross-user isolation) sign in real
+users and exercise real RLS. Set these in `.env.local` (or the shell env) before running e2e or the
+full gate:
+
+- `NEXT_PUBLIC_SUPABASE_URL` — dev project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — dev project anon (publishable) key
+- `SUPABASE_SERVICE_ROLE_KEY` — dev project service-role key (creates/deletes disposable test users)
+
+Playwright's global setup (`e2e/global-setup.ts`) fails the run fast with an actionable message if any
+are missing or the project is unreachable, rather than letting a third of the suite fail opaquely.
+`lint`, `typecheck`, unit tests, and `build` need none of these.
 
 While iterating, scope verification to what actually changed:
 
