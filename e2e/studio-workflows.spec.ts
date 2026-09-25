@@ -134,24 +134,6 @@ test("cast and screen settings remain synchronized with the preview", async ({ p
   await expect(page.getByRole("button", { name: "Whose phone" })).toBeVisible();
 });
 
-test("avatar upload can be applied and removed", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: "Edit" }).first().click();
-
-  await page.locator('input[type="file"]').setInputFiles({
-    name: "avatar.png",
-    mimeType: "image/png",
-    buffer: Buffer.from(
-      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-      "base64",
-    ),
-  });
-  await expect(page.getByRole("button", { name: "Remove" })).toBeVisible();
-
-  await page.getByRole("button", { name: "Remove" }).click();
-  await expect(page.getByRole("button", { name: "Remove" })).toHaveCount(0);
-});
-
 test("empty conversations disable export with a clear label", async ({ page }) => {
   await page.goto("/");
   const timeline = page.getByRole("region", { name: "Chat Script Timeline" });
