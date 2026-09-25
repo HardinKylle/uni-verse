@@ -31,7 +31,7 @@ test("a reset link lets the user set a new password and sign in with it", async 
     const { data, error } = await admin.auth.admin.generateLink({ type: "recovery", email });
     if (error) throw error;
 
-    await page.goto(`/auth/callback?token_hash=${data.properties.hashed_token}&type=recovery`);
+    await page.goto(`/auth/recovery?token_hash=${data.properties.hashed_token}&type=recovery`);
     await expect(page).toHaveURL("/reset-password");
 
     await page.getByRole("textbox", { name: "New password", exact: true }).fill(newPassword);
