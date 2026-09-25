@@ -95,7 +95,7 @@ export function ExportButton() {
             </div>
 
             {!isAuthenticated ? (
-              <p className="-mt-2 mb-4 text-[11px] text-sand-500">
+              <p className="-mt-2 mb-4 text-[0.6875rem] text-sand-500">
                 Sign in to unlock all frame shapes.
               </p>
             ) : null}
@@ -115,12 +115,12 @@ export function ExportButton() {
             </div>
 
             <div className="mb-4 flex items-center justify-between rounded-lg bg-sand-50 px-3 py-2">
-              <span className="text-[12px] font-medium text-sand-600">Frames</span>
-              <span className="font-mono text-[12px] font-semibold text-sand-900">{frames.length}</span>
+              <span className="text-[0.75rem] font-medium text-sand-600">Frames</span>
+              <span className="font-mono text-[0.75rem] font-semibold text-sand-900">{frames.length}</span>
             </div>
 
             {!isAuthenticated && frames.length > exportFrameCount ? (
-              <p role="status" className="mb-4 rounded-lg bg-accent-100/60 px-3 py-2 text-[11.5px] text-accent-900">
+              <p role="status" className="mb-4 rounded-lg bg-accent-100/60 px-3 py-2 text-[0.7188rem] text-accent-900">
                 Only the first {exportFrameCount} of {frames.length} frames will be exported. Sign in to export them all.
               </p>
             ) : null}

@@ -104,7 +104,7 @@ export function PhonePreview() {
 
       const nextScale = Math.max(
         0.1,
-        Math.min(0.85, availableWidth / 375, availableHeight / 812),
+        Math.min(1.25, availableWidth / 375, availableHeight / 812),
       );
       setPhoneScale((current) => (Math.abs(current - nextScale) < 0.001 ? current : nextScale));
     };

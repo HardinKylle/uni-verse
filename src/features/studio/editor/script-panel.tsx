@@ -1,6 +1,6 @@
 "use client";
 
-import { type KeyboardEvent, useEffect, useRef, useState, useMemo } from "react";
+import { type KeyboardEvent, type RefObject, useEffect, useLayoutEffect, useRef, useState, useMemo } from "react";
 import { Button } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Trash2, ArrowLeftRight, GripVertical, Clock, Copy, Scissors } from "lucide-react";
@@ -32,6 +32,8 @@ export function ScriptPanel() {
   const characterById = new Map(state.characters.map((character) => [character.id, character]));
   const activeSender = characterById.get(state.activeSenderId);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const draftRef = useRef<HTMLTextAreaElement>(null);
+  useAutosize(draftRef, state.draft);
 
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [mentionIndex, setMentionIndex] = useState(0);
@@ -110,12 +112,12 @@ export function ScriptPanel() {
 
   return (
     <section className="relative flex h-full min-w-0 flex-1 flex-col border-r border-sand-100 bg-white" aria-labelledby="script-title">
-      <div className="flex items-center justify-between px-4 py-4 bg-white/80 backdrop-blur-md z-10 sticky top-0 xl:px-6">
-        <h2 className={panelTitle} id="script-title">Chat Script Timeline</h2>
-        <span className="rounded-full bg-accent-100 px-2.5 py-0.5 font-mono text-[11px] font-medium text-accent-800">{state.messages.length}</span>
+      <div className="flex items-center justify-between gap-3 px-4 py-4 bg-white/80 backdrop-blur-md z-10 sticky top-0 xl:px-6">
+        <h2 className={cn(panelTitle, "truncate")} id="script-title">Chat Script Timeline</h2>
+        <span className="rounded-full bg-accent-100 px-2.5 py-0.5 font-mono text-[0.6875rem] font-medium text-accent-800">{state.messages.length}</span>
       </div>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-[128px] bg-accent-100/10 [scrollbar-color:#e8ded7_transparent] [scrollbar-width:thin] xl:px-6">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-4 bg-accent-100/10 [scrollbar-color:#e8ded7_transparent] [scrollbar-width:thin] xl:px-6">
         {state.messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center opacity-70">
             <div className="w-12 h-12 rounded-full bg-accent-100/50 flex items-center justify-center mb-4 ring-1 ring-accent-200/50">
@@ -147,12 +149,12 @@ export function ScriptPanel() {
         )}
       </div>
 
-      <div className="absolute right-4 bottom-4 left-4">
+      <div className="relative shrink-0 border-t border-sand-100 bg-white px-3 pt-3 pb-3 xl:px-4">
         <AnimatePresence>
           {mentionQuery !== null && (
             <CharacterPopover
               className="bottom-[calc(100%+8px)] left-0 w-64"
-              header={<span className="font-mono text-[9.5px] font-medium tracking-[0.05em] text-sand-500 uppercase">Select Sender</span>}
+              header={<span className="font-mono text-[0.5938rem] font-medium tracking-[0.05em] text-sand-500 uppercase">Select Sender</span>}
             >
               {filteredCharacters.length === 0 ? (
                 <li className="px-3 py-3 text-xs text-sand-500 text-center font-medium">
@@ -173,9 +175,9 @@ export function ScriptPanel() {
           )}
         </AnimatePresence>
 
-        <div className="rounded-2xl border border-sand-200 bg-white/90 backdrop-blur-xl p-3 shadow-lg ring-1 ring-black/5">
+        <div className="rounded-2xl border border-sand-200 bg-white p-2.5 shadow-sm">
           <div className="relative mb-2 px-1 flex items-center gap-0.5">
-            <span className="font-mono text-[9.5px] font-medium tracking-[0.05em] text-sand-500 uppercase">Writing as</span>
+            <span className="font-mono text-[0.5938rem] font-medium tracking-[0.05em] text-sand-500 uppercase">Writing as</span>
 
             <button
               type="button"
@@ -186,7 +188,7 @@ export function ScriptPanel() {
               className={cn("flex items-center gap-1.5 rounded-full bg-accent-50 pl-1.5 pr-2.5 py-0.5 cursor-pointer hover:bg-accent-100 transition-colors", focusRing)}
             >
               <span className="size-1.5 rounded-full" style={{ backgroundColor: activeSender?.color }} />
-              <span className="text-[10px] font-bold text-accent-600">{activeSender?.name ?? "?"}</span>
+              <span className="text-[0.625rem] font-bold text-accent-600">{activeSender?.name ?? "?"}</span>
             </button>
 
             <AnimatePresence>
@@ -208,14 +210,15 @@ export function ScriptPanel() {
             </AnimatePresence>
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex items-end gap-2">
             <textarea
+              ref={draftRef}
               id="new-message"
               aria-label="New message"
-              className={cn("max-h-32 min-h-[48px] w-full resize-none rounded-xl border border-transparent bg-sand-100/50 px-3.5 py-3 text-[13px] leading-relaxed text-sand-900 placeholder:text-sand-400 transition-colors focus:border-sand-300 focus:bg-white focus:outline-none [scrollbar-width:none]", focusRing)}
-              rows={Math.min(4, Math.max(1, state.draft.split('\n').length))}
+              className={cn("max-h-32 min-h-[2.5rem] min-w-0 flex-1 resize-none rounded-xl border border-transparent bg-sand-100/50 px-3 py-2.5 text-[0.8125rem] leading-relaxed text-sand-900 placeholder:text-sand-400 transition-colors focus:border-sand-300 focus:bg-white focus:outline-none [scrollbar-width:none]", focusRing)}
+              rows={1}
               value={state.draft}
-              placeholder="Type @ to switch sender..."
+              placeholder="Message · @ to switch"
               onChange={(event) => {
                 const value = event.target.value;
                 setState((current) => ({ ...current, draft: value }));
@@ -236,11 +239,11 @@ export function ScriptPanel() {
               }}
               onKeyDown={handleDraftKeyDown}
             />
-            <div className="flex justify-end gap-2">
+            <div className="flex shrink-0 gap-1.5">
               <Button
                 variant="primary"
                 isIconOnly
-                className="size-11 shrink-0"
+                className="size-10 shrink-0"
                 isDisabled={!state.draft.trim()}
                 aria-label="Send message"
                 onPress={() => setState((current) => addMessage(current))}
@@ -251,7 +254,7 @@ export function ScriptPanel() {
                 <Button
                   variant="secondary"
                   isIconOnly
-                  className="size-11"
+                  className="size-10"
                   aria-label="Add timestamp"
                   onPress={() => setState((current) => addTimestamp(current))}
                 >
@@ -264,6 +267,32 @@ export function ScriptPanel() {
       </div>
     </section>
   );
+}
+
+/**
+ * Grows a textarea to fit its content, including soft-wrapped lines. Counting
+ * `\n` alone clipped long lines once the column got narrow; re-measuring on
+ * resize keeps it right as the panel width changes.
+ */
+function useAutosize(ref: RefObject<HTMLTextAreaElement | null>, value: string) {
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const fit = () => {
+      element.style.height = "auto";
+      element.style.height = `${element.scrollHeight}px`;
+    };
+    fit();
+    if (typeof ResizeObserver === "undefined") return;
+    let width = element.clientWidth;
+    const observer = new ResizeObserver(() => {
+      if (element.clientWidth === width) return;
+      width = element.clientWidth;
+      fit();
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [ref, value]);
 }
 
 /** Shared shell for the mention popover and the "Writing as" dropdown — same shape, different trigger. */
@@ -300,7 +329,7 @@ function CharacterOption({
       aria-selected={isHighlighted}
       tabIndex={0}
       className={cn(
-        "flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer text-[13px] font-semibold transition-colors",
+        "flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer text-[0.8125rem] font-semibold transition-colors",
         isHighlighted ? "bg-accent-100/50 text-accent-900" : "hover:bg-sand-50 text-sand-700"
       )}
       onClick={onSelect}
@@ -323,15 +352,15 @@ function FrameBreakToggle({ messageId, hasBreak }: { messageId: string; hasBreak
   const { setState } = useStudio();
 
   return (
-    <div className={cn("absolute -top-[9px] left-0 right-0 z-10 flex justify-center", !hasBreak && "pointer-events-none")}>
+    <div className={cn("absolute -top-[0.5625rem] left-0 right-0 z-10 flex justify-center", !hasBreak && "pointer-events-none")}>
       {hasBreak && (
-        <div className="absolute left-[-16px] right-[-16px] top-1/2 -mt-px border-t-2 border-dashed border-accent-500 pointer-events-none" />
+        <div className="absolute left-[-1rem] right-[-1rem] top-1/2 -mt-px border-t-2 border-dashed border-accent-500 pointer-events-none" />
       )}
       <button
         type="button"
         onClick={() => setState((current) => toggleFrameBreak(current, messageId))}
         className={cn(
-          "relative flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[9px] font-bold tracking-widest uppercase transition-all pointer-events-auto",
+          "relative flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[0.5625rem] font-bold tracking-widest uppercase transition-all pointer-events-auto",
           hasBreak
             ? "border-accent-500 bg-accent-500 text-white opacity-100 shadow-md"
             : "border-sand-200 bg-white text-sand-400 opacity-0 hover:border-accent-400 hover:text-accent-600 group-hover:opacity-100",
@@ -350,6 +379,8 @@ function FrameBreakToggle({ messageId, hasBreak }: { messageId: string; hasBreak
 function SortableMessageNode({ message, sender, index }: { message: Message; sender: Character; index: number }) {
   const { state, setState } = useStudio();
   const hasFrameBreak = state.frameBreaks.includes(message.id);
+  const textRef = useRef<HTMLTextAreaElement>(null);
+  useAutosize(textRef, message.text);
   const {
     attributes,
     listeners,
@@ -432,7 +463,7 @@ function SortableMessageNode({ message, sender, index }: { message: Message; sen
         )}
       >
         <GripVertical className={cn("absolute size-4 opacity-0 transition-opacity duration-200", isDragging ? "opacity-100" : "group-hover:opacity-100")} />
-        <span className={cn("font-mono text-[10px] font-medium transition-opacity duration-200", isDragging ? "opacity-0" : "group-hover:opacity-0")}>{index + 1}</span>
+        <span className={cn("font-mono text-[0.625rem] font-medium transition-opacity duration-200", isDragging ? "opacity-0" : "group-hover:opacity-0")}>{index + 1}</span>
       </div>
 
       <div className="flex-1 min-w-0">
@@ -442,16 +473,17 @@ function SortableMessageNode({ message, sender, index }: { message: Message; sen
             style={{ backgroundColor: sender.color }}
             aria-hidden="true"
           />
-          <span className="text-[12px] font-bold text-sand-900">{sender.name}</span>
+          <span className="text-[0.75rem] font-bold text-sand-900">{sender.name}</span>
         </div>
         <label className="sr-only" htmlFor={`message-${message.id}`}>
           Message from {sender.name}
         </label>
         <textarea
+          ref={textRef}
           id={`message-${message.id}`}
-          className="w-full resize-none bg-transparent text-[14px] leading-relaxed text-sand-700 placeholder-sand-300 focus:outline-none focus:ring-0 overflow-hidden"
+          className="w-full resize-none bg-transparent text-[0.875rem] leading-relaxed text-sand-700 placeholder-sand-300 focus:outline-none focus:ring-0 overflow-hidden"
           value={message.text}
-          rows={message.text.split('\n').length || 1}
+          rows={1}
           onChange={(event) =>
             setState((current) => updateMessageText(current, message.id, event.target.value))
           }

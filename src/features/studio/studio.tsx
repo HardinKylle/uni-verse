@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, LayoutDashboard, PanelRight, PanelRightClose } from "lucide-react";
 
 import { EditorSidebar } from "./editor/editor-sidebar";
@@ -31,6 +31,25 @@ function combineSaveStatus(...statuses: SaveStatus[]): SaveStatus {
   return STATUS_PRIORITY.find((status) => statuses.includes(status)) ?? "saved";
 }
 
+/** Where the properties panel docks as a column; below this it opens as an overlay drawer. */
+const DOCKED_PANEL_QUERY = "(min-width: 80rem)";
+
+function subscribeToDockedPanel(onChange: () => void) {
+  if (typeof window.matchMedia !== "function") return () => {};
+  const query = window.matchMedia(DOCKED_PANEL_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+/** Server render assumes the docked layout; below `xl` the docked column is CSS-hidden anyway. */
+function useIsPanelDocked() {
+  return useSyncExternalStore(
+    subscribeToDockedPanel,
+    () => typeof window.matchMedia !== "function" || window.matchMedia(DOCKED_PANEL_QUERY).matches,
+    () => true,
+  );
+}
+
 export function Studio({
   authenticatedUser,
   initialData,
@@ -39,6 +58,21 @@ export function Studio({
   initialData?: StudioInitialData;
 }) {
   const [state, setState] = useState(initialData?.state ?? demoState);
+  const isPanelDocked = useIsPanelDocked();
+  // Kept apart from `isRightPanelOpen` so opening the drawer on a small screen
+  // doesn't change the docked panel's saved state on a large one.
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const isPanelOpen = isPanelDocked ? state.isRightPanelOpen : isDrawerOpen;
+  const showDrawer = !isPanelDocked && isDrawerOpen;
+
+  useEffect(() => {
+    if (!showDrawer) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) setIsDrawerOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [showDrawer]);
   const episodeAutosave = useEpisodeAutosave(state, initialData?.episode);
   const characterAutosave = useCharacterAutosave(state, initialData?.projectId);
   const characterDeletion = useCharacterDeletion({
@@ -67,7 +101,7 @@ export function Studio({
   return (
     <StudioContext.Provider value={contextValue}>
       <SmallScreenNotice />
-      <main className="hidden h-screen flex-col overflow-hidden bg-[#F7F3EF] text-foreground font-sans text-sm p-3 gap-2 lg:flex">
+      <main data-studio className="hidden h-screen flex-col overflow-hidden bg-[#F7F3EF] text-foreground font-sans text-sm p-3 gap-2 lg:flex">
         <header className="relative z-40 flex shrink-0 items-center justify-between rounded-2xl border border-sand-200/70 bg-white py-3 pl-4 pr-2">
           <nav aria-label="Studio" className="flex min-w-0 items-center gap-2.5">
             <Link href="/" className="rounded-sm font-display text-xl leading-none text-sand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
@@ -103,33 +137,36 @@ export function Studio({
               <div className="relative">
                 <a
                   href="/login"
-                  className="flex h-9 items-center rounded-lg bg-sand-900 px-3 text-[12.5px] font-semibold text-white shadow-sm transition-colors hover:bg-sand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                  className="flex h-9 items-center rounded-lg bg-sand-900 px-3 text-[0.7812rem] font-semibold text-white shadow-sm transition-colors hover:bg-sand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
                 >
                   Sign in
                 </a>
                 {hasDemoEdits ? (
-                  <p className="absolute top-[calc(100%+4px)] right-0 z-20 whitespace-nowrap rounded-md bg-white/80 px-2 py-0.5 text-[11px] text-sand-500 shadow-sm ring-1 ring-black/5 backdrop-blur">
+                  <p className="absolute top-[calc(100%+4px)] right-0 z-20 whitespace-nowrap rounded-md bg-white/80 px-2 py-0.5 text-[0.6875rem] text-sand-500 shadow-sm ring-1 ring-black/5 backdrop-blur">
                     Demo edits won&apos;t be carried over
                   </p>
                 ) : null}
               </div>
             )}
-            <div aria-hidden className="mx-1 hidden h-5 w-px bg-sand-200 xl:block" />
+            <div aria-hidden className="mx-1 h-5 w-px bg-sand-200" />
             <ExportButton />
             <Button
               variant="outline"
               size="sm"
               isIconOnly
-              className="hidden xl:inline-flex"
-              aria-label={state.isRightPanelOpen ? "Close properties" : "Open properties"}
-              onPress={() => setState(s => ({ ...s, isRightPanelOpen: !s.isRightPanelOpen }))}
+              aria-label={isPanelOpen ? "Close properties" : "Open properties"}
+              aria-expanded={isPanelOpen}
+              onPress={() => {
+                if (isPanelDocked) setState(s => ({ ...s, isRightPanelOpen: !s.isRightPanelOpen }));
+                else setIsDrawerOpen(open => !open);
+              }}
             >
-              {state.isRightPanelOpen ? <PanelRightClose className="size-4.5" /> : <PanelRight className="size-4.5" />}
+              {isPanelOpen ? <PanelRightClose className="size-4.5" /> : <PanelRight className="size-4.5" />}
             </Button>
           </div>
         </header>
 
-        <div className="flex min-h-0 flex-1 gap-3">
+        <div className="relative flex min-h-0 flex-1 gap-3">
           <div className="flex min-w-0 flex-[1.25] overflow-hidden rounded-2xl border border-sand-200/70 bg-white">
             <EditorSidebar
               characterDeletion={characterDeletion}
@@ -149,7 +186,7 @@ export function Studio({
           <motion.div
             initial={false}
             animate={{
-              width: state.isRightPanelOpen ? PANEL_WIDTH : 0,
+              width: state.isRightPanelOpen ? PANEL_WIDTH : "0rem",
               opacity: state.isRightPanelOpen ? 1 : 0
             }}
             transition={{ type: "spring", bounce: 0, duration: 0.4 }}
@@ -159,6 +196,35 @@ export function Studio({
               <PropertiesPanel />
             </div>
           </motion.div>
+
+          <AnimatePresence>
+            {showDrawer ? (
+              <>
+                <motion.div
+                  key="properties-backdrop"
+                  aria-hidden
+                  className="absolute inset-0 z-30 rounded-2xl bg-sand-900/15"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsDrawerOpen(false)}
+                />
+                <motion.div
+                  key="properties-drawer"
+                  role="dialog"
+                  aria-label="Properties"
+                  className="absolute inset-y-0 right-0 z-40 max-w-full overflow-hidden rounded-2xl border border-sand-200/70 bg-white shadow-2xl"
+                  style={{ width: PANEL_WIDTH }}
+                  initial={{ x: "100%", opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: "100%", opacity: 0 }}
+                  transition={{ type: "spring", bounce: 0, duration: 0.35 }}
+                >
+                  <PropertiesPanel />
+                </motion.div>
+              </>
+            ) : null}
+          </AnimatePresence>
         </div>
       </main>
     </StudioContext.Provider>

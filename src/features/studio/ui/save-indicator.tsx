@@ -22,7 +22,7 @@ export function SaveIndicator({ status }: { status: SaveStatus }) {
         <span
           role="status"
           aria-label="Save status"
-          className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-1 text-[12px] font-semibold text-red-700 ring-1 ring-red-200"
+          className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-1 text-[0.75rem] font-semibold text-red-700 ring-1 ring-red-200"
         >
           <RotateCw className="size-3.5" aria-hidden />
           {labels.conflict}
@@ -30,7 +30,7 @@ export function SaveIndicator({ status }: { status: SaveStatus }) {
         <button
           type="button"
           onClick={() => window.location.reload()}
-          className="rounded-md bg-red-600 px-2.5 py-1 text-[12px] font-semibold text-white transition-colors hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
+          className="rounded-md bg-red-600 px-2.5 py-1 text-[0.75rem] font-semibold text-white transition-colors hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
         >
           Reload
         </button>

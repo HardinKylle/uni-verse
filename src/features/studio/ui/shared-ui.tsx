@@ -10,7 +10,7 @@ export const focusRingOutline = "focus-visible:outline-2 focus-visible:outline-o
 
 export { focusRing, miniLabel, standardInput };
 
-export const panelTitle = "font-mono text-[10.5px] font-medium tracking-[0.05em] text-sand-800 uppercase";
+export const panelTitle = "font-mono text-[0.6562rem] font-medium tracking-[0.05em] text-sand-800 uppercase";
 
 export function Panel({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
   return (
@@ -24,8 +24,8 @@ export function Panel({ title, children, className }: { title: string; children:
 export function SettingRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
-      <span className="text-[12.5px] font-medium text-sand-700">{label}</span>
-      <div className="w-[180px]">{children}</div>
+      <span className="text-[0.7812rem] font-medium text-sand-700">{label}</span>
+      <div className="w-[11.25rem]">{children}</div>
     </div>
   );
 }
@@ -33,7 +33,7 @@ export function SettingRow({ label, children }: { label: string; children: React
 export function LabeledInput({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <span className={cn(miniLabel, "mb-[5px]")}>{label}</span>
+      <span className={cn(miniLabel, "mb-[0.3125rem]")}>{label}</span>
       {children}
     </div>
   );
@@ -55,7 +55,7 @@ export function SegmentedControl<T extends string>({
   disabled?: boolean;
 }) {
   return (
-    <div className={cn("flex gap-1 rounded-[10px] bg-sand-100 p-1", disabled && "opacity-50")} role="group" aria-label={label}>
+    <div className={cn("flex gap-1 rounded-[0.625rem] bg-sand-100 p-1", disabled && "opacity-50")} role="group" aria-label={label}>
       {options.map((option) => {
         const isActive = option.value === value;
         return (
@@ -63,7 +63,7 @@ export function SegmentedControl<T extends string>({
             type="button"
             key={option.value}
             disabled={disabled}
-            className={cn("relative flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border-0 bg-transparent px-1 py-1.5 text-[12px] font-medium whitespace-nowrap transition-colors z-10 disabled:cursor-not-allowed", isActive ? "text-accent-800" : "text-sand-500 hover:text-sand-800", focusRing)}
+            className={cn("relative flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border-0 bg-transparent px-1 py-1.5 text-[0.75rem] font-medium whitespace-nowrap transition-colors z-10 disabled:cursor-not-allowed", isActive ? "text-accent-800" : "text-sand-500 hover:text-sand-800", focusRing)}
             aria-pressed={isActive}
             onClick={() => onChange(option.value)}
           >
@@ -151,7 +151,7 @@ export function Avatar({ character, size }: { character: Character; size: "small
     <div
       className={cn(
         "flex shrink-0 items-center justify-center rounded-full bg-cover bg-center font-bold text-white shadow-sm ring-1 ring-black/10",
-        size === "large" ? "size-12 text-lg" : "size-9 text-[13px]",
+        size === "large" ? "size-12 text-lg" : "size-9 text-[0.8125rem]",
       )}
       style={{
         backgroundColor: character.color,
