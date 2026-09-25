@@ -65,7 +65,7 @@ export function PhoneScreen({
   const screen = (
     <div
       className={cn(
-        "relative flex flex-col overflow-hidden bg-[var(--screen-bg)] font-['SF_Pro_Text'] text-[var(--header-text)]",
+        "relative flex flex-col overflow-hidden bg-[var(--screen-bg)] font-ios text-[var(--header-text)]",
         state.dark ? darkTheme : lightTheme,
         state.bubbleColor === "green" && "[--outgoing:#28cd41]",
         includeBezel && "rounded-[42px]",

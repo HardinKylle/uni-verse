@@ -143,7 +143,7 @@ export function PhonePreview() {
         style={{ transform: `scale(${phoneScale})` }}
       >
         <div
-          className={cn("relative flex h-full flex-col overflow-hidden rounded-[42px] bg-[var(--screen-bg)] font-['SF_Pro_Text'] text-[var(--header-text)] transition-colors duration-250", state.dark ? darkTheme : lightTheme, state.bubbleColor === "green" && "[--outgoing:#28cd41]")}
+          className={cn("relative flex h-full flex-col overflow-hidden rounded-[42px] bg-[var(--screen-bg)] font-ios text-[var(--header-text)] transition-colors duration-250", state.dark ? darkTheme : lightTheme, state.bubbleColor === "green" && "[--outgoing:#28cd41]")}
           data-bubble={state.bubbleColor}
           data-theme={state.dark ? "dark" : "light"}
         >
@@ -252,7 +252,7 @@ export function ConversationHeader({ contact, inbox }: { contact: Character; inb
       <button type="button" className={cn("absolute top-[15px] left-1.5 flex cursor-pointer items-center gap-0.5 border-0 bg-transparent p-1 text-[var(--outgoing)]", focusRingOutline)} aria-label="Back to conversations">
         <ChevronLeftIcon />
         {inbox !== "" && (
-          <span className="flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[var(--outgoing)] px-1.5 font-['SF_Pro_Text'] text-[11px] font-normal leading-none tracking-[-0.02em] text-white">
+          <span className="flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[var(--outgoing)] px-1.5 font-ios text-[11px] font-normal leading-none tracking-[-0.02em] text-white">
             {inbox}
           </span>
         )}
@@ -417,7 +417,7 @@ export function IosKeyboard({ animated = true, showHomeIndicator = true }: { ani
       animate={{ y: 0 }}
       exit={{ y: "100%" }}
       transition={SPRING_SOFT}
-      className="absolute bottom-0 left-0 flex flex-col justify-between bg-[var(--kb-bg)] pb-[20px] pt-[10px] px-1 w-full shrink-0 z-20 font-['SF_Pro_Text'] select-none h-[291px]"
+      className="absolute bottom-0 left-0 flex flex-col justify-between bg-[var(--kb-bg)] pb-[20px] pt-[10px] px-1 w-full shrink-0 z-20 font-ios select-none h-[291px]"
     >
       <div className="flex justify-center gap-[5px]">
         {row1.map((k) => (
