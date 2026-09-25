@@ -14,7 +14,7 @@ describe("Studio", () => {
     render(<Studio />);
 
     const header = screen.getByRole("banner");
-    expect(within(header).getByRole("link", { name: "Kathalis." })).toHaveAttribute("href", "/");
+    expect(within(header).getByRole("link", { name: "Kathalis" })).toHaveAttribute("href", "/");
     expect(within(header).getByRole("link", { name: "Sign in" })).toBeInTheDocument();
     expect(within(header).getByRole("button", { name: "Export" })).toBeInTheDocument();
     expect(within(header).getByRole("button", { name: "Close properties" })).toBeInTheDocument();

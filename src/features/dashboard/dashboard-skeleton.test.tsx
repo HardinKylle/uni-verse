@@ -14,7 +14,7 @@ describe("DashboardSkeleton", () => {
   it("keeps the static page chrome visible while data loads", () => {
     render(<DashboardSkeleton />);
 
-    expect(screen.getByText(/kathalis/i)).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Kathalis" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Stories" })).toBeInTheDocument();
   });
 
