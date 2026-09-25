@@ -14,7 +14,7 @@ describe("StudioSkeleton", () => {
   it("keeps the wordmark visible while the project loads", () => {
     render(<StudioSkeleton />);
 
-    expect(within(screen.getByRole("main")).getByText(/kathalis/i)).toBeInTheDocument();
+    expect(within(screen.getByRole("main")).getByRole("img", { name: "Kathalis" })).toBeInTheDocument();
   });
 
   it("exposes no interactive controls before data arrives", () => {

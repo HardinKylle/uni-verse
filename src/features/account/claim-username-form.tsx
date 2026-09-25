@@ -8,8 +8,7 @@ import { claimUsername } from "./actions";
 import { SignOutButton } from "./sign-out-button";
 import { TextInput } from "./text-input";
 import { normalizeUsername, usernameError } from "./validate-username";
-import { miniLabel } from "@/components/ui/form-styles";
-import { cn } from "@/lib/utils";
+import { BrandLogo } from "@/components/brand-logo";
 
 export function ClaimUsernameForm() {
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +48,7 @@ export function ClaimUsernameForm() {
   return (
     <div className="w-full max-w-md rounded-2xl border border-sand-200/70 bg-white p-8 shadow-xl shadow-sand-900/5">
       <div className="mb-8">
-        <p className={cn(miniLabel, "text-accent-600")}>Kathalis</p>
+        <div className="mb-4"><BrandLogo /></div>
         <h1 className="font-display text-4xl text-sand-900">Choose your username.</h1>
         <p className="mt-3 text-sm leading-6 text-sand-500">
           Your username is your handle on Kathalis — it&apos;s shown instead of your email and won&apos;t

@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { BrandLogo } from "@/components/brand-logo";
 
 /**
  * Instant loading state for /dashboard. Mirrors the Dashboard layout —
@@ -14,9 +15,7 @@ export function DashboardSkeleton() {
 
       <header className="border-b border-sand-200/80 bg-white">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
-          <span className="font-display text-2xl leading-none text-sand-900">
-            Kathalis<span className="text-accent-500">.</span>
-          </span>
+          <BrandLogo />
           <div className="flex items-center gap-3">
             <Skeleton className="hidden h-4 w-40 sm:block" />
             <Skeleton className="h-9 w-24 rounded-lg" />

@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { BrandLogo } from "@/components/brand-logo";
 import { PANEL_WIDTH, PHONE_SCREEN_WIDTH } from "./constants";
 import { SmallScreenNotice } from "./ui/small-screen-notice";
 
@@ -22,9 +23,7 @@ export function StudioSkeleton() {
 
       <header className="flex shrink-0 items-center justify-between rounded-2xl border border-sand-200/70 bg-white py-3 pl-4 pr-2">
         <div className="flex min-w-0 items-center gap-2.5">
-          <span className="font-display text-xl leading-none text-sand-900">
-            Kathalis<span className="text-accent-500">.</span>
-          </span>
+          <BrandLogo />
           <div aria-hidden className="h-5 w-px bg-sand-200" />
           <Skeleton className="h-5 w-64" />
         </div>

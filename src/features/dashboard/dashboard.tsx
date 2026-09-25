@@ -9,6 +9,7 @@ import { createBlankProjectSeed } from "./new-project";
 import { Button } from "@heroui/react";
 
 import { SignOutButton } from "@/features/account/sign-out-button";
+import { BrandLogo } from "@/components/brand-logo";
 import type { ProjectSummary } from "./types";
 import type { Json } from "@/lib/supabase/database.types";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -100,9 +101,9 @@ export function Dashboard({
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
           <Link
             href="/dashboard"
-            className="rounded-sm font-display text-2xl leading-none text-sand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
           >
-            Kathalis<span className="text-accent-500">.</span>
+            <BrandLogo />
           </Link>
           <div className="flex items-center gap-3">
             <span className="hidden max-w-56 truncate text-xs text-sand-500 sm:block">

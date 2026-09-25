@@ -9,6 +9,7 @@ import { EditorSidebar } from "./editor/editor-sidebar";
 import { Button } from "@heroui/react";
 
 import { SignOutButton } from "@/features/account/sign-out-button";
+import { BrandLogo } from "@/components/brand-logo";
 import { ExportButton } from "./export/export-panel";
 import { PhonePreview } from "./phone/phone-preview";
 import { ScriptPanel } from "./editor/script-panel";
@@ -104,8 +105,8 @@ export function Studio({
       <main data-studio className="hidden h-screen flex-col overflow-hidden bg-[#F7F3EF] text-foreground font-sans text-sm p-3 gap-2 lg:flex">
         <header className="relative z-40 flex shrink-0 items-center justify-between rounded-2xl border border-sand-200/70 bg-white py-3 pl-4 pr-2">
           <nav aria-label="Studio" className="flex min-w-0 items-center gap-2.5">
-            <Link href="/" className="rounded-sm font-display text-xl leading-none text-sand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
-              Kathalis<span className="text-accent-500">.</span>
+            <Link href="/" className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
+              <BrandLogo />
             </Link>
             {initialData ? (
               <>
