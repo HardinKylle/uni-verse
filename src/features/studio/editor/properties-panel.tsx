@@ -14,7 +14,7 @@ import type { BubbleColor, DeliveryStatus, Meridiem } from "../types";
 
 export function PropertiesPanel() {
   return (
-    <aside className="h-full w-[340px] shrink-0 overflow-y-auto border-l border-sand-100 bg-white px-5 pt-5 pb-12 [scrollbar-color:#e8ded7_transparent] [scrollbar-width:thin]">
+    <aside className="h-full w-[21.25rem] shrink-0 overflow-y-auto border-l border-sand-100 bg-white px-5 pt-5 pb-12 [scrollbar-color:#e8ded7_transparent] [scrollbar-width:thin]">
       <SenderSection />
       <ScreenSettings />
     </aside>

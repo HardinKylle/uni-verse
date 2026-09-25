@@ -59,7 +59,7 @@ export function EditorSidebar({
   episode?: EpisodeNavigation;
 }) {
   return (
-    <aside className="h-full w-[240px] shrink-0 overflow-y-auto border-r border-sand-100 bg-white px-4 pt-5 pb-12 [scrollbar-color:#e8ded7_transparent] [scrollbar-width:thin] xl:w-[288px] 2xl:w-[340px]">
+    <aside className="h-full w-[15rem] shrink-0 overflow-y-auto border-r border-sand-100 bg-white px-4 pt-5 pb-12 [scrollbar-color:#e8ded7_transparent] [scrollbar-width:thin] xl:w-[18rem] 2xl:w-[21.25rem]">
       <EpisodeInfo episode={episode} />
       <CastSection characterDeletion={characterDeletion} />
     </aside>
@@ -82,7 +82,7 @@ function EpisodeInfo({ episode }: { episode?: EpisodeNavigation }) {
   return (
     <nav aria-label="Episodes" className="mb-6 border-b border-sand-100 pb-6">
       <div className="mb-2.5 flex items-center justify-between">
-        <h2 className="font-mono text-[10.5px] font-medium tracking-[0.05em] text-sand-800 uppercase">
+        <h2 className="font-mono text-[0.6562rem] font-medium tracking-[0.05em] text-sand-800 uppercase">
           Episodes
         </h2>
         <Button
@@ -104,7 +104,7 @@ function EpisodeInfo({ episode }: { episode?: EpisodeNavigation }) {
           the switcher below, which only jumps to a different episode. */}
       <div className="rounded-lg border border-accent-200 bg-accent-50/40 px-3 py-2.5">
         <span className="sr-only">Current episode</span>
-        <EpisodeTitleInput className="h-8 border-0 bg-transparent px-0 text-[17px] shadow-none hover:bg-transparent focus:bg-transparent focus:shadow-none focus:ring-0" />
+        <EpisodeTitleInput className="h-8 border-0 bg-transparent px-0 text-[1.0625rem] shadow-none hover:bg-transparent focus:bg-transparent focus:shadow-none focus:ring-0" />
         <EpisodeDescriptionInput className="border-0 bg-transparent px-0 shadow-none hover:bg-transparent focus:bg-transparent focus:shadow-none focus:ring-0" />
       </div>
 
@@ -127,7 +127,7 @@ function EpisodeInfo({ episode }: { episode?: EpisodeNavigation }) {
         </div>
       ) : null}
 
-      {episode.error ? <p role="alert" className="mt-2 text-[11px] font-medium text-red-600">{episode.error}</p> : null}
+      {episode.error ? <p role="alert" className="mt-2 text-[0.6875rem] font-medium text-red-600">{episode.error}</p> : null}
     </nav>
   );
 }
@@ -135,7 +135,7 @@ function EpisodeInfo({ episode }: { episode?: EpisodeNavigation }) {
 function EpisodeMetadata() {
   return (
     <>
-      <EpisodeTitleInput className="text-[19px] placeholder:not-italic" />
+      <EpisodeTitleInput className="text-[1.1875rem] placeholder:not-italic" />
       <EpisodeDescriptionInput />
     </>
   );
@@ -167,7 +167,7 @@ function EpisodeDescriptionInput({ className }: { className?: string }) {
       aria-label="Episode description"
       className={cn(
         standardInput,
-        "text-[12px] font-medium text-sand-500 placeholder:text-sand-300",
+        "text-[0.75rem] font-medium text-sand-500 placeholder:text-sand-300",
         className,
       )}
       value={state.episodeDescription}
@@ -243,10 +243,10 @@ function CastSection({
         <Plus className="size-3.5" /> Add character
       </Button>
       {castIsFull ? (
-        <p className="mt-2 text-center text-[11px] text-sand-500">Sign in to add more characters.</p>
+        <p className="mt-2 text-center text-[0.6875rem] text-sand-500">Sign in to add more characters.</p>
       ) : null}
       {characterDeletion.error && !characterDeletion.prompt ? (
-        <p role="alert" className="mt-2 text-center text-[11px] font-medium text-red-600">
+        <p role="alert" className="mt-2 text-center text-[0.6875rem] font-medium text-red-600">
           {characterDeletion.error}
         </p>
       ) : null}
@@ -314,9 +314,9 @@ function SortableCastItem({
         </div>
         <Avatar character={character} size="small" />
         <div className="min-w-0 flex-1">
-          <strong className={cn("block truncate text-[13px] font-semibold", isEditing ? "text-accent-900" : "text-sand-900")}>{character.name || "Unnamed"}</strong>
+          <strong className={cn("block truncate text-[0.8125rem] font-semibold", isEditing ? "text-accent-900" : "text-sand-900")}>{character.name || "Unnamed"}</strong>
           {isOwner ? (
-            <span className="mt-1 inline-flex items-center rounded-full bg-accent-900 px-1.5 py-[1px] text-[9px] font-bold tracking-wide text-accent-100 uppercase">
+            <span className="mt-1 inline-flex items-center rounded-full bg-accent-900 px-1.5 py-[0.0625rem] text-[0.5625rem] font-bold tracking-wide text-accent-100 uppercase">
               This phone
             </span>
           ) : null}
@@ -373,7 +373,7 @@ function SortableCastItem({
           <div className="mb-4">
             <p className={miniLabel}>Profile photo</p>
             <div className="flex items-center gap-2">
-              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-sand-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-sand-700 shadow-sm transition-colors hover:bg-accent-50 hover:text-accent-700 hover:border-accent-200 focus-within:ring-2 focus-within:ring-accent-500 focus-within:ring-offset-1" htmlFor={photoInputId}>
+              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-sand-200 bg-white px-3 py-1.5 text-[0.75rem] font-semibold text-sand-700 shadow-sm transition-colors hover:bg-accent-50 hover:text-accent-700 hover:border-accent-200 focus-within:ring-2 focus-within:ring-accent-500 focus-within:ring-offset-1" htmlFor={photoInputId}>
                 <Upload className="size-3.5" /> Upload
                 <input
                   id={photoInputId}
@@ -390,7 +390,7 @@ function SortableCastItem({
               )}
             </div>
             {uploadError ? (
-              <p className="mt-1.5 text-[11px] font-medium text-red-600">{uploadError}</p>
+              <p className="mt-1.5 text-[0.6875rem] font-medium text-red-600">{uploadError}</p>
             ) : null}
           </div>
 
@@ -410,7 +410,7 @@ function SortableCastItem({
           {isMinimumCast ? (
             <p
               id={minimumCastDescriptionId}
-              className="mt-2 text-center text-[11px] text-sand-500"
+              className="mt-2 text-center text-[0.6875rem] text-sand-500"
             >
               A story needs at least two characters.
             </p>

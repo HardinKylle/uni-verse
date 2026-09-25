@@ -109,6 +109,17 @@
   --color-sand-900: #1B1615;
 }
 
+/* Studio density. The studio chrome is sized in rem, so this one rule scales
+   every panel, control, and label together: ≈12.9px at 1280x580, 16px at
+   1920x1080, up to 18px on 1440p and larger. The lower of the width- and
+   height-driven sizes wins, since a short viewport crowds the script column as
+   much as a narrow one. Media queries still resolve rem against the browser
+   default, so breakpoints are unaffected. The phone preview is px-based and
+   fits itself separately. */
+html:has([data-studio]) {
+  font-size: clamp(12px, min(0.335vw + 9.57px, 0.75vh + 8.5px), 18px);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
