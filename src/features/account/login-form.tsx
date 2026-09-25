@@ -58,7 +58,7 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
       setIsSubmitting(true);
       setStatus(null);
       const { error } = await getSupabaseBrowserClient().auth.resetPasswordForEmail(email, {
-        redirectTo: callbackUrl(),
+        redirectTo: `${window.location.origin}/auth/recovery`,
       });
       setIsSubmitting(false);
       // Only rate limiting surfaces as an error here; Supabase reports success
