@@ -6,6 +6,14 @@ import { readFileSync } from "node:fs";
 import type { Database } from "../src/lib/supabase/database.types";
 
 /** Resolves an env var from the process env or `.env.local`, or `undefined` if absent. */
+/**
+ * Wait budget for "New episode" navigation. The click flushes pending
+ * autosaves, inserts the episode, then renders the new route on the dev
+ * server, each a round trip to the remote Supabase project. That chain runs
+ * 3-5s under parallel workers, past the 5s expect default.
+ */
+export const EPISODE_CREATE_TIMEOUT = 15_000;
+
 export function tryEnv(name: string): string | undefined {
   if (process.env[name]) return process.env[name]!;
   let file: string;

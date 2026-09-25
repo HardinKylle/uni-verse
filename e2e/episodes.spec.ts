@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures";
+import { EPISODE_CREATE_TIMEOUT, expect, test } from "./fixtures";
 
 test.use({ viewport: { width: 1600, height: 900 } });
 test.setTimeout(90_000);
@@ -44,7 +44,7 @@ test("a writer creates, renames, and switches between episodes without losing ed
   await scriptTimeline.getByRole("button", { name: "Send message" }).click();
   await episodes(page).getByRole("button", { name: "New episode" }).click();
 
-  await expect(page).toHaveURL(/\?episode=[0-9a-f-]+$/);
+  await expect(page).toHaveURL(/\?episode=[0-9a-f-]+$/, { timeout: EPISODE_CREATE_TIMEOUT });
   expect(episodeWrites).toContainEqual(expect.objectContaining({
     script: expect.objectContaining({
       messages: expect.arrayContaining([
@@ -97,7 +97,7 @@ test("a save conflict blocks episode switching and keeps the local edit visible"
   const projectUrl = page.url();
 
   await episodes(page).getByRole("button", { name: "New episode" }).click();
-  await expect(page).toHaveURL(/\?episode=[0-9a-f-]+$/);
+  await expect(page).toHaveURL(/\?episode=[0-9a-f-]+$/, { timeout: EPISODE_CREATE_TIMEOUT });
   await page.goto(projectUrl);
 
   const stalePage = await page.context().newPage();
@@ -146,7 +146,7 @@ test("switching preserves an edit that reverts while another save is in flight",
   await page.getByLabel("Episode title").fill("Episode 1");
   await episodes(page).getByRole("button", { name: "New episode" }).click();
 
-  await expect(page).toHaveURL(/\?episode=[0-9a-f-]+$/);
+  await expect(page).toHaveURL(/\?episode=[0-9a-f-]+$/, { timeout: EPISODE_CREATE_TIMEOUT });
   await switchEpisode(page, "Episode 1");
   await expect(page.getByLabel("Episode title")).toHaveValue("Episode 1");
 });
