@@ -137,7 +137,7 @@ test("signed-in long conversations export complete visual sequences at multiple 
 
   const ratios = [
     { button: "Tall (9:19.5)", slug: "tall", frameCount: 2, dimensions: { width: 750, height: 1626 } },
-    { button: "Portrait (4:5)", slug: "portrait", frameCount: 3, dimensions: { width: 750, height: 938 } },
+    { button: "Portrait (4:5)", slug: "portrait", frameCount: 4, dimensions: { width: 750, height: 938 } },
     { button: "Classic (3:4)", slug: "classic", frameCount: 3, dimensions: { width: 750, height: 1000 } },
     { button: "Square (1:1)", slug: "square", frameCount: 5, dimensions: { width: 750, height: 750 } },
   ];

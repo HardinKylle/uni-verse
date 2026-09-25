@@ -36,7 +36,7 @@ function MeasureRows({ messages }: { messages: Message[] }) {
   const groupFlags = computeGroupFlagsMap(messages);
 
   return (
-    <div className="font-['SF_Pro_Text']">
+    <div className="font-ios">
       {messages.map((message) => {
         if (message.type === "timestamp") {
           return (

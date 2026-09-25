@@ -83,6 +83,7 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-newsreader);
+  --font-ios: var(--font-sf-pro), -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* AU Studio Accents */
   --color-accent-100: #F5E9E2; /* Linen */
