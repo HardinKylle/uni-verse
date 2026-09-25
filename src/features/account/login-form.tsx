@@ -9,7 +9,8 @@ import { confirmPasswordError, passwordError } from "./validate-credentials";
 import { normalizeUsername, usernameError } from "./validate-username";
 import { PasswordInput } from "./password-input";
 import { TextInput } from "./text-input";
-import { focusRing, miniLabel } from "@/components/ui/form-styles";
+import { focusRing } from "@/components/ui/form-styles";
+import { BrandLogo } from "@/components/brand-logo";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -124,7 +125,7 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
   return (
     <div className="w-full max-w-md rounded-2xl border border-sand-200/70 bg-white p-8 shadow-xl shadow-sand-900/5">
       <div className="mb-8">
-        <p className={cn(miniLabel, "text-accent-600")}>Kathalis</p>
+        <div className="mb-4"><BrandLogo /></div>
         <h1 className="font-display text-4xl text-sand-900">Keep your story close.</h1>
         <p className="mt-3 text-sm leading-6 text-sand-500">
           Sign in to save your episodes and continue writing across devices.
