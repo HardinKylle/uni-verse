@@ -5,7 +5,8 @@
  * drift apart.
  */
 
-export const PANEL_WIDTH = 340;
+/** Properties panel width, in rem so it follows the studio's fluid density (see `globals.css`). */
+export const PANEL_WIDTH = "21.25rem";
 
 /** How long the "Delivered"/"Read" status stays hidden after sending, in ms. */
 export const STATUS_DELAY_MS = 1200;

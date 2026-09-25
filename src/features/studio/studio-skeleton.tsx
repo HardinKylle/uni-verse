@@ -12,6 +12,7 @@ export function StudioSkeleton() {
     <>
       <SmallScreenNotice />
       <main
+        data-studio
         aria-busy="true"
         className="hidden h-screen flex-col overflow-hidden bg-[#F7F3EF] text-foreground font-sans text-sm p-3 gap-2 lg:flex"
       >
@@ -35,7 +36,7 @@ export function StudioSkeleton() {
 
       <div className="flex min-h-0 flex-1 gap-3">
         <div className="flex min-w-0 flex-1 overflow-hidden rounded-2xl border border-sand-200/70 bg-white">
-          <div className="h-full w-[288px] shrink-0 border-r border-sand-100 px-5 pt-5 2xl:w-[340px]">
+          <div className="h-full w-[18rem] shrink-0 border-r border-sand-100 px-5 pt-5 2xl:w-[21.25rem]">
             <Skeleton className="h-6 w-48" />
             <Skeleton className="mt-3 h-4 w-32" />
             <div className="mt-8 space-y-2">
