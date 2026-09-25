@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 
-import { expect, test } from "./fixtures";
+import { EPISODE_CREATE_TIMEOUT, expect, test } from "./fixtures";
 
 test.use({ viewport: { width: 1600, height: 900 } });
 test.setTimeout(90_000);
@@ -44,7 +44,7 @@ async function openCharacterEditor(page: Page, name: string) {
 
 async function createSecondEpisodeWithJazMessage(page: Page, text: string) {
   await episodes(page).getByRole("button", { name: "New episode" }).click();
-  await expect(page).toHaveURL(/\?episode=[0-9a-f-]+$/);
+  await expect(page).toHaveURL(/\?episode=[0-9a-f-]+$/, { timeout: EPISODE_CREATE_TIMEOUT });
   await timeline(page).getByRole("textbox", { name: "New message" }).fill(text);
   await timeline(page).getByRole("button", { name: "Send message" }).click();
   await waitForSaved(page);
