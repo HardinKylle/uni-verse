@@ -46,5 +46,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.redirect(new URL("/", origin));
+  // A recovery link signs the user in only so they can choose a new password.
+  const destination = flow === "token_hash" && type === "recovery" ? "/reset-password" : "/";
+  return NextResponse.redirect(new URL(destination, origin));
 }
