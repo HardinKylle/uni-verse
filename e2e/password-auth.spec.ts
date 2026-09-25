@@ -13,23 +13,16 @@ async function attemptSignup(page: Page, { password, confirmPassword }: { passwo
   await page.getByRole("button", { name: "Create account" }).click();
 }
 
-test("sign-up shows an inline error for a too-short password", async ({ page }) => {
+// The individual password rules are unit-tested in validate-credentials.test.ts;
+// this only proves the form wires validation errors inline and stays put.
+test("sign-up shows password validation errors inline", async ({ page }) => {
   await attemptSignup(page, { password: "Abc123", confirmPassword: "Abc123" });
-
   await expect(page.getByText("Password must be at least 8 characters.")).toBeVisible();
   await expect(page).toHaveURL(/\/login/);
-});
 
-test("sign-up shows an inline error for a password missing a character class", async ({ page }) => {
-  await attemptSignup(page, { password: "alllowercase1", confirmPassword: "alllowercase1" });
-
-  await expect(page.getByText("Password must include an uppercase letter.")).toBeVisible();
-  await expect(page).toHaveURL(/\/login/);
-});
-
-test("sign-up shows an inline error when the confirmation does not match", async ({ page }) => {
-  await attemptSignup(page, { password: "Abcd1234", confirmPassword: "Abcd1235" });
-
+  await page.getByRole("textbox", { name: "Password", exact: true }).fill("Abcd1234");
+  await page.getByRole("textbox", { name: "Confirm password", exact: true }).fill("Abcd1235");
+  await page.getByRole("button", { name: "Create account" }).click();
   await expect(page.getByText("Passwords do not match.")).toBeVisible();
   await expect(page).toHaveURL(/\/login/);
 });

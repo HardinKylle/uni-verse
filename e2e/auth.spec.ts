@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-test("login page offers email + password and Google sign-in", async ({ page }) => {
+test("login page offers email + password and Google sign-in, and switches to sign-up", async ({ page }) => {
   await page.goto("/login");
 
   await expect(page.getByRole("heading", { name: "Keep your story close." })).toBeVisible();
@@ -8,10 +8,6 @@ test("login page offers email + password and Google sign-in", async ({ page }) =
   await expect(page.getByRole("textbox", { name: "Password", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
-});
-
-test("login page toggles between sign-in and sign-up", async ({ page }) => {
-  await page.goto("/login");
 
   await page.getByRole("button", { name: "New here? Create an account" }).click();
   await expect(page.getByRole("button", { name: "Create account" })).toBeVisible();
