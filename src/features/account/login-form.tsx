@@ -15,7 +15,22 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 type FormStatus = { kind: "error" | "success"; message: string } | null;
-type Mode = "signin" | "signup";
+type Mode = "signin" | "signup" | "forgot";
+
+// Same message whether or not the address has an account, so the form never
+// confirms which emails are registered.
+const SUBMIT_LABEL: Record<Mode, string> = {
+  signin: "Sign in",
+  signup: "Create account",
+  forgot: "Send reset link",
+};
+const SUBMITTING_LABEL: Record<Mode, string> = {
+  signin: "Signing in…",
+  signup: "Creating account…",
+  forgot: "Sending…",
+};
+
+const RESET_SENT_MESSAGE = "If an account uses that email, we sent a link to reset your password.";
 
 export function LoginForm({ callbackError }: { callbackError?: string }) {
   const [mode, setMode] = useState<Mode>("signin");
@@ -37,6 +52,21 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
     event.preventDefault();
 
     const form = new FormData(event.currentTarget);
+
+    if (mode === "forgot") {
+      const email = String(form.get("email") ?? "").trim();
+      setIsSubmitting(true);
+      setStatus(null);
+      const { error } = await getSupabaseBrowserClient().auth.resetPasswordForEmail(email, {
+        redirectTo: callbackUrl(),
+      });
+      setIsSubmitting(false);
+      // Only rate limiting surfaces as an error here; Supabase reports success
+      // for unknown addresses too.
+      setStatus(error ? { kind: "error", message: error.message } : { kind: "success", message: RESET_SENT_MESSAGE });
+      return;
+    }
+
     const password = String(form.get("password") ?? "");
 
     if (mode === "signin") {
@@ -122,6 +152,11 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
     setMode((current) => (current === "signin" ? "signup" : "signin"));
   }
 
+  function switchMode(next: Mode) {
+    setStatus(null);
+    setMode(next);
+  }
+
   return (
     <div className="w-full max-w-md rounded-2xl border border-sand-200/70 bg-white p-8 shadow-xl shadow-sand-900/5">
       <div className="mb-8">
@@ -147,7 +182,15 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
       ) : null}
 
       <form onSubmit={submitPassword} className="space-y-4">
-        {mode === "signin" ? (
+        {mode === "forgot" ? (
+          <TextInput
+            label="Email address"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="writer@example.com"
+          />
+        ) : mode === "signin" ? (
           <TextInput
             label="Email or username"
             name="identifier"
@@ -171,32 +214,45 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
             </div>
           </>
         )}
-        <div>
+        {mode === "forgot" ? null : <div>
           <PasswordInput
             label="Password"
             name="password"
             autoComplete={mode === "signin" ? "current-password" : "new-password"}
           />
+          {mode === "signin" ? (
+            <button
+              type="button"
+              className={cn("mt-1.5 block text-xs text-sand-500 hover:text-sand-800", focusRing)}
+              onClick={() => switchMode("forgot")}
+            >
+              Forgot password?
+            </button>
+          ) : null}
           {mode === "signup" ? (
             <span className="mt-1.5 block text-xs text-sand-400">
               At least 8 characters, with an uppercase letter, a lowercase letter, and a number.
             </span>
           ) : null}
-        </div>
+        </div>}
         {mode === "signup" ? (
           <PasswordInput label="Confirm password" name="confirmPassword" autoComplete="new-password" />
         ) : null}
         <Button type="submit" variant="primary" fullWidth isDisabled={isBusy}>
-          {isSubmitting
-            ? mode === "signin" ? "Signing in…" : "Creating account…"
-            : mode === "signin" ? "Sign in" : "Create account"}
+          {isSubmitting ? SUBMITTING_LABEL[mode] : SUBMIT_LABEL[mode]}
         </Button>
       </form>
 
       <div className="mt-4">
-        <Button variant="ghost" size="sm" fullWidth onPress={toggleMode}>
-          {mode === "signin" ? "New here? Create an account" : "Already have an account? Sign in"}
-        </Button>
+        {mode === "forgot" ? (
+          <Button variant="ghost" size="sm" fullWidth onPress={() => switchMode("signin")}>
+            Back to sign in
+          </Button>
+        ) : (
+          <Button variant="ghost" size="sm" fullWidth onPress={toggleMode}>
+            {mode === "signin" ? "New here? Create an account" : "Already have an account? Sign in"}
+          </Button>
+        )}
       </div>
 
       <div className="my-6 flex items-center gap-3 text-[10px] font-medium uppercase tracking-widest text-sand-400">
