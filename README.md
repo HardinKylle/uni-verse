@@ -6,7 +6,7 @@ story episode. Working title: **Kathalis**.
 
 ## Overview
 
-Built for Jazmine and other AU/chat-fic writers. AU fics are told through fabricated chat screenshots
+Built for AU and chat-fiction writers. AU fics are told through fabricated chat screenshots
 posted as sequential image threads. Existing generators (Zeoob, Fakedetail, etc.) render one screenshot
 at a time — no persistent characters, no story structure, no batch export, nothing saved. An AU writer's
 real unit of work is an **episode**: 20–60 sequential frames, a recurring cast, and timestamps that
