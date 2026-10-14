@@ -97,8 +97,8 @@ npm run build
 Also verify the primary user path at desktop and mobile widths with no browser console errors.
 
 `npm run test:e2e` requires the dev Supabase project configured in `.env.local`:
-`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` (the last
-is used only to create and delete disposable test users). Playwright fails fast with an actionable
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` (a private
+server key also used to create and delete disposable test users). Playwright fails fast with an actionable
 message if these are missing or the project is unreachable. The other gate steps need no backend.
 
 ## Deployment
@@ -108,6 +108,15 @@ from the committed migrations when launch is ready — see `CLAUDE.md`); the cur
 dev-only project. Required environment variables (`NEXT_PUBLIC_SUPABASE_URL`,
 `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) are set in the deployment platform, not
 with their values here.
+
+Apply the committed database migrations before deploying matching application changes. Username
+availability checks and username sign-in use the server-only service-role key for shared rate limits:
+60 availability checks per IP per minute, 20 sign-in attempts per IP per minute, and 10 per username
+per minute. Counters store HMACs rather than raw IPs or usernames; requests are denied when the limiter
+is unavailable. On Vercel, the app uses its overwritten `x-forwarded-for` header. Other hosts use a
+shared limit bucket until a trusted proxy adapter is configured. Browser clients cannot read or modify
+the counters or invoke the limiter function. Direct email/password and OAuth flows retain Supabase's
+own provider limits.
 
 ## Decisions and limitations
 
