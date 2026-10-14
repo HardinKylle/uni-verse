@@ -3,16 +3,14 @@
 import { useRef, useState } from "react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { AVATAR_MAX_BYTES } from "../constants";
+import { AVATAR_MAX_BYTES, AVATAR_MIME_TYPES, AVATAR_TYPE_ERROR } from "../constants";
 import { updateCharacter } from "../editor/studio-actions";
 import type { Character, StudioState } from "../types";
 
-/** Prefers the file's own extension; falls back to its MIME subtype (jpeg → jpg). */
+/** Derive the extension from the allowed MIME type, not a user-supplied filename. */
 function avatarExtension(file: File): string {
-  const nameExt = file.name.split(".").pop();
-  if (nameExt && /^[a-zA-Z0-9]{1,5}$/.test(nameExt)) return nameExt.toLowerCase();
   const subtype = file.type.split("/")[1];
-  return subtype === "jpeg" ? "jpg" : subtype || "png";
+  return subtype === "jpeg" ? "jpg" : subtype;
 }
 
 /**
@@ -63,8 +61,8 @@ export function useAvatarUpload(
   async function uploadPhoto(characterId: string, file: File) {
     setError(characterId, undefined);
 
-    if (!file.type.startsWith("image/")) {
-      setError(characterId, "Please choose an image file.");
+    if (!AVATAR_MIME_TYPES.includes(file.type)) {
+      setError(characterId, AVATAR_TYPE_ERROR);
       return;
     }
     if (file.size > AVATAR_MAX_BYTES) {
