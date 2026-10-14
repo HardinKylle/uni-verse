@@ -289,7 +289,7 @@ test("avatar upload rejects non-images and oversized files, preserving the origi
   await page
     .locator('input[type="file"]')
     .setInputFiles({ name: "notes.txt", mimeType: "text/plain", buffer: Buffer.from("hello") });
-  await expect(page.getByText("Please choose an image file.")).toBeVisible();
+  await expect(page.getByText("Please choose a PNG, JPEG, WebP, GIF, or AVIF image.")).toBeVisible();
   await expect.poll(() => contactAvatarBackground(page)).toBe(originalBackground);
 
   await page

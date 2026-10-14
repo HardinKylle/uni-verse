@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 
 import { canAddCharacter } from "../limits/anonymous-limits";
 import { useStudio } from "../studio-context";
-import { CHARACTER_PALETTE } from "../constants";
+import { AVATAR_MIME_TYPES, CHARACTER_PALETTE } from "../constants";
 import { useAvatarUpload } from "../persistence/use-avatar-upload";
 import type {
   CharacterDeletionControl,
@@ -378,7 +378,7 @@ function SortableCastItem({
                 <input
                   id={photoInputId}
                   type="file"
-                  accept="image/*"
+                  accept={AVATAR_MIME_TYPES.join(",")}
                   className="sr-only"
                   onChange={(event) => onUploadPhoto(character.id, event)}
                 />
@@ -389,6 +389,7 @@ function SortableCastItem({
                 </Button>
               )}
             </div>
+            <p className="mt-1.5 text-[0.6875rem] text-sand-500">PNG, JPEG, WebP, GIF, or AVIF. Max 2MB.</p>
             {uploadError ? (
               <p className="mt-1.5 text-[0.6875rem] font-medium text-red-600">{uploadError}</p>
             ) : null}

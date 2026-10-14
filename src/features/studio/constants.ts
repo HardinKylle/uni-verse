@@ -44,6 +44,17 @@ export const PHONE_SCREEN_WIDTH = 375;
 /** Avatar upload size guard, in bytes. */
 export const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
 
+/** Keep aligned with the avatars bucket's allowed_mime_types migration. */
+export const AVATAR_MIME_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/gif",
+  "image/avif",
+];
+
+export const AVATAR_TYPE_ERROR = "Please choose a PNG, JPEG, WebP, GIF, or AVIF image.";
+
 /** Export raster scale (2x = retina). */
 export const EXPORT_SCALE = 2;
 
