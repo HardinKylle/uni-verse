@@ -39,6 +39,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      auth_request_limits: {
+        Row: {
+          key: string
+          attempts: number
+          expires_at: string
+        }
+        Insert: {
+          key: string
+          attempts: number
+          expires_at: string
+        }
+        Update: {
+          key?: string
+          attempts?: number
+          expires_at?: string
+        }
+        Relationships: []
+      }
       characters: {
         Row: {
           avatar_path: string | null
@@ -185,6 +203,10 @@ export type Database = {
       bootstrap_workspace: {
         Args: { p_characters: Json; p_script: Json }
         Returns: undefined
+      }
+      consume_auth_rate_limit: {
+        Args: { p_key: string; p_limit: number; p_window_seconds: number }
+        Returns: boolean
       }
       create_project: {
         Args: { p_characters: Json; p_script: Json; p_title: string }
