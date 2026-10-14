@@ -106,9 +106,10 @@ export function LoginForm({ callbackError }: { callbackError?: string }) {
     setIsSubmitting(true);
     setStatus(null);
 
-    if (await isUsernameTaken(username)) {
+    const availability = await isUsernameTaken(username);
+    if (availability.error || availability.taken) {
       setIsSubmitting(false);
-      setStatus({ kind: "error", message: "That username is already taken." });
+      setStatus({ kind: "error", message: availability.error ?? "That username is already taken." });
       return;
     }
 

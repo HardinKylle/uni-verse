@@ -1,10 +1,12 @@
 "use server";
 
 import { createClient } from "@supabase/supabase-js";
+import { headers } from "next/headers";
 
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { normalizeUsername, usernameError } from "./validate-username";
+import { AUTH_RATE_LIMIT_MESSAGE, limitAuthRequests, type AuthRequestScope } from "./rate-limit";
 
 // Matches Supabase's own message for a failed email+password attempt, so a
 // bad username, an unknown username, and a right-username-wrong-password all
@@ -20,19 +22,30 @@ function createAdminClient() {
   );
 }
 
-/** Public existence check used to give inline feedback during sign-up. */
-export async function isUsernameTaken(rawUsername: string): Promise<boolean> {
-  const username = normalizeUsername(rawUsername);
-  if (usernameError(username)) return false;
+async function createRateLimitedAdmin(scope: AuthRequestScope, username: string) {
+  try {
+    const admin = createAdminClient();
+    return await limitAuthRequests(admin, scope, username, await headers()) ? admin : null;
+  } catch {
+    return null;
+  }
+}
 
-  const admin = createAdminClient();
+/** Public existence check used to give inline feedback during sign-up. */
+export async function isUsernameTaken(rawUsername: unknown): Promise<{ taken?: boolean; error?: string }> {
+  if (typeof rawUsername !== "string" || rawUsername.length > 64) return { taken: false };
+  const username = normalizeUsername(rawUsername);
+  if (usernameError(username)) return { taken: false };
+
+  const admin = await createRateLimitedAdmin("username-lookup", username);
+  if (!admin) return { error: AUTH_RATE_LIMIT_MESSAGE };
   const { data, error } = await admin
     .from("profiles")
     .select("id")
     .eq("username", username)
     .maybeSingle();
-  if (error) throw error;
-  return data !== null;
+  if (error) return { error: "Username check is temporarily unavailable. Try again shortly." };
+  return { taken: data !== null };
 }
 
 /**
@@ -41,19 +54,24 @@ export async function isUsernameTaken(rawUsername: string): Promise<boolean> {
  * sent back to the browser.
  */
 export async function signInWithUsername(
-  rawUsername: string,
-  password: string,
+  rawUsername: unknown,
+  password: unknown,
 ): Promise<{ error?: string }> {
+  if (typeof rawUsername !== "string" || rawUsername.length > 64
+    || typeof password !== "string" || password.length > 1024) {
+    return { error: GENERIC_SIGN_IN_ERROR };
+  }
   const username = normalizeUsername(rawUsername);
   if (usernameError(username)) return { error: GENERIC_SIGN_IN_ERROR };
 
-  const admin = createAdminClient();
+  const admin = await createRateLimitedAdmin("username-signin", username);
+  if (!admin) return { error: AUTH_RATE_LIMIT_MESSAGE };
   const profile = await admin
     .from("profiles")
     .select("id")
     .eq("username", username)
     .maybeSingle();
-  if (profile.error) throw profile.error;
+  if (profile.error) return { error: "Sign-in is temporarily unavailable. Try again shortly." };
   if (!profile.data) return { error: GENERIC_SIGN_IN_ERROR };
 
   const user = await admin.auth.admin.getUserById(profile.data.id);
